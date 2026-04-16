@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+stock_auto/
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# 환경 변수
+.env
+
+# IDE
+.vscode/
+.idea/
+.claude/
+.omc/
+.sisyphus/
+*.swp
+*.swo
+*~
+
+# 데이터 및 리포트
+data/*.csv
+data/*.parquet
+data/*.db
+reports/*.html
+reports/*.png
+reports/*.pdf
+
+# 로그
+*.log
+logs/
+test_output.txt
+test_results.txt
+
+# 테스트
+.pytest_cache/
+.pytest_tmp/
+.pytest_tmp_final/
+.pytest_tmp_run/
+.coverage
+htmlcov/
+.mypy_cache/
+.cache/
+.test-artifacts/
+.yf-cache/
+dashboard_env/
+mlruns/
+trading_state.json
+
+# OS
+.DS_Store
+Thumbs.db

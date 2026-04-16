@@ -1,0 +1,196 @@
+# 거래 설정 파일
+# 실전 매매 및 백테스팅 관련 설정을 관리합니다.
+
+# =============================================================================
+# 공통 기본값 (YAML 앵커)
+# =============================================================================
+_defaults:
+  initial_capital: &default_initial_capital 10000000  # 1천만원 (단일 정의)
+  commission_rate: &default_commission_rate 0.00015   # 0.015%
+
+# =============================================================================
+# 환경 설정
+# =============================================================================
+environment: "mock"  # mock, real
+
+# =============================================================================
+# 시장 설정
+# =============================================================================
+markets:
+  korea:
+    code: "KR"
+    currency: "KRW"
+    exchange: "KRX"
+    trading_hours:
+      open: "09:00"
+      close: "15:30"
+    timezone: "Asia/Seoul"
+    holidays: []  # 공휴일은 별도 관리
+
+  us:
+    code: "US"
+    currency: "USD"
+    exchanges:
+      - "NYSE"
+      - "NASDAQ"
+      - "AMEX"
+    trading_hours:
+      pre_market: "04:00"
+      open: "09:30"
+      close: "16:00"
+      after_hours: "20:00"
+    timezone: "America/New_York"
+    allow_extended_hours: false
+
+# =============================================================================
+# 거래 설정
+# =============================================================================
+trading:
+  # 기본 설정
+  default_market: "KR"
+  check_interval: 1           # 감시 주기 (초)
+  
+  # 주문 설정
+  orders:
+    default_type: "MARKET"    # MARKET, LIMIT
+    position_size_pct: 0.1    # 주문당 자산의 10%
+    max_order_value: 10000000 # 최대 1천만원
+    min_order_value: 100000   # 최소 10만원
+  
+  # 슬리피지 설정
+  slippage:
+    enabled: true
+    estimate_pct: 0.001       # 0.1%
+
+# =============================================================================
+# 리스크 관리
+# =============================================================================
+risk:
+  # 포지션 제한
+  max_position_pct: 0.25       # 단일 종목 최대 25%
+  max_total_exposure: 0.8      # 전체 노출 최대 80%
+  
+  # 손실 제한
+  daily_loss_limit: 0.03       # 일일 최대 손실 3%
+  max_drawdown: 0.1            # 최대 낙폭 10%
+  
+  # 거래 제한
+  max_trades_per_day: 20
+  min_holding_time_minutes: 5
+
+# =============================================================================
+# Circuit Breaker 설정
+# =============================================================================
+circuit_breaker:
+  enabled: true
+  failure_threshold: 5         # 연속 5회 실패 시 중단
+  success_threshold: 2         # 2회 성공 시 복구
+  timeout_seconds: 300         # 5분 대기
+  half_open_max_calls: 3
+
+# =============================================================================
+# 알림 설정
+# =============================================================================
+notifications:
+  telegram:
+    enabled: true
+    notify_on:
+      - trade_executed
+      - circuit_breaker_triggered
+      - daily_summary
+      - error
+    min_trade_value_to_notify: 100000
+
+  # 로깅
+  logging:
+    level: "INFO"
+    file: "auto_trader.log"
+    max_bytes: 10485760        # 10MB
+    backup_count: 5
+
+# =============================================================================
+# 백테스팅 설정
+# =============================================================================
+backtest:
+  initial_capital: *default_initial_capital
+  commission_rate: *default_commission_rate
+  
+  # 데이터 설정
+  data:
+    source: "yfinance"         # yfinance, kis_api
+    start_date: "2024-01-01"
+    end_date: null             # null = 오늘
+  
+  # 성과 지표
+  metrics:
+    calculate_sharpe: true
+    calculate_mdd: true
+    calculate_win_rate: true
+    risk_free_rate: 0.035      # 3.5%
+
+# =============================================================================
+# 포트폴리오 설정
+# =============================================================================
+portfolio:
+  # 멀티 포트폴리오
+  multi:
+    enabled: false
+    allocation_strategy: "equal"  # equal, risk_parity, custom
+    rebalance_frequency: "monthly"
+  
+  # 기본 포트폴리오
+  default:
+    name: "main"
+    strategy: "momentum"
+    market: "KR"
+    capital: *default_initial_capital
+
+# =============================================================================
+# 시장 레짐별 파라미터
+# =============================================================================
+regime:
+  # 레짐 0: 강세/안정 (Bullish/Stable) - 기본값
+  bullish:
+    position_size_multiplier: 1.0   # 기본 포지션 크기
+    max_stocks: null                 # auto_trader max_stocks 그대로 사용
+
+  # 레짐 1: 고변동성 (Volatile/High Volatility)
+  high_volatility:
+    position_size_multiplier: 0.6   # 포지션 60%로 축소
+    max_stocks: null
+
+  # 레짐 2: 약세/급락 (Bear/Crash)
+  bear:
+    position_size_multiplier: 0.4   # 포지션 40%로 축소
+    max_stocks: null
+
+# =============================================================================
+# 출구 전략 파라미터
+# =============================================================================
+exit_strategy:
+  stop_loss_pct: -0.07              # 손절 기준 (-7%)
+  trailing_stop_activation_pct: 0.10  # 트레일링 스탑 활성화 기준 (+10%)
+  trailing_stop_trail_pct: 0.05    # 트레일링 스탑 폭 (-5%)
+  min_score: 1.0                   # 최소 점수 청산 기준
+
+# =============================================================================
+# 종목 설정
+# =============================================================================
+symbols:
+  # 한국 주식
+  korea:
+    watchlist:
+      - "005930"  # 삼성전자
+      - "000660"  # SK하이닉스
+      - "373220"  # LG에너지솔루션
+    exclude: []
+  
+  # 미국 주식
+  us:
+    watchlist:
+      - "AAPL"
+      - "MSFT"
+      - "GOOGL"
+      - "AMZN"
+      - "NVDA"
+    exclude: []

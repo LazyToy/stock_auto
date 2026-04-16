@@ -1,0 +1,332 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,'Anthropic Sans',sans-serif)}
+.db{padding:1rem 0;display:flex;flex-direction:column;gap:1rem}
+.section-title{font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;padding-left:2px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.75rem 1rem;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--color-border-secondary)}
+.card.active{border-color:var(--color-border-info);background:var(--color-background-info)}
+.card-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;font-weight:400}
+.card-value{font-size:20px;font-weight:500;color:var(--color-text-primary);line-height:1}
+.card-sub{font-size:11px;margin-top:4px;font-weight:400}
+.up{color:var(--color-text-danger)}
+.dn{color:var(--color-text-info)}
+.neu{color:var(--color-text-secondary)}
+.badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;margin-top:5px}
+.b-red{background:var(--color-background-danger);color:var(--color-text-danger)}
+.b-grn{background:var(--color-background-success);color:var(--color-text-success)}
+.b-amb{background:var(--color-background-warning);color:var(--color-text-warning)}
+.b-blu{background:var(--color-background-info);color:var(--color-text-info)}
+.b-neu{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.signal-bar{display:flex;gap:4px;align-items:center;margin-bottom:.5rem}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot-red{background:#E24B4A}
+.dot-amb{background:#EF9F27}
+.dot-grn{background:#639922}
+.signal-text{font-size:12px;color:var(--color-text-secondary)}
+.master-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem}
+.detail-panel{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem;margin-top:.5rem;font-size:12px;color:var(--color-text-secondary);line-height:1.6;display:none}
+.detail-panel.show{display:block}
+.progress-wrap{margin:6px 0 2px}
+.progress-bg{height:4px;background:var(--color-border-tertiary);border-radius:2px;overflow:hidden}
+.progress-fill{height:4px;border-radius:2px;transition:width .3s}
+.tab-row{display:flex;gap:4px;margin-bottom:.75rem;flex-wrap:wrap}
+.tab{font-size:11px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);cursor:pointer;color:var(--color-text-secondary);background:transparent;transition:all .15s}
+.tab:hover{background:var(--color-background-secondary)}
+.tab.on{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
+.divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:.25rem 0}
+.priority-tag{font-size:10px;font-weight:500;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle}
+.p1{background:#FCEBEB;color:#A32D2D}
+.p2{background:#FAEEDA;color:#854F0B}
+.p3{background:#E6F1FB;color:#185FA5}
+.icon{font-size:13px;margin-right:3px}
+</style>
+
+<div class="db">
+
+<div class="tab-row" id="tabs">
+  <button class="tab on" onclick="switchTab('all')">전체 보기</button>
+  <button class="tab" onclick="switchTab('macro')">글로벌 매크로</button>
+  <button class="tab" onclick="switchTab('korea')">한국 시장</button>
+  <button class="tab" onclick="switchTab('commodity')">에너지·원자재</button>
+  <button class="tab" onclick="switchTab('signal')">종합 신호등</button>
+</div>
+
+<!-- SECTION: 글로벌 핵심 경보 -->
+<div class="sect" data-cat="macro">
+  <div class="section-title">글로벌 핵심 경보 <span class="priority-tag p1">최우선 감시</span></div>
+  <div class="grid4">
+    <div class="card" onclick="toggle('d1')">
+      <div class="card-label">달러 인덱스 DXY</div>
+      <div class="card-value">104.2</div>
+      <div class="card-sub up">▲ +0.8% 강달러</div>
+      <div class="badge b-red">위험 — 신흥국 압박</div>
+      <div class="detail-panel" id="d1">30년차: DXY 103 돌파 시 신흥국 자금이탈 시작. 106↑이면 한국 외국인 매도 가속. 이 숫자 하나로 한국시장 방향이 결정된다.</div>
+    </div>
+    <div class="card" onclick="toggle('d2')">
+      <div class="card-label">미국 기준금리</div>
+      <div class="card-value">5.25%</div>
+      <div class="card-sub neu">— 동결 유지 중</div>
+      <div class="badge b-amb">주의 — 인하 지연</div>
+      <div class="detail-panel" id="d2">30년차: Fed Funds Rate은 금값, 성장주, 신흥국 전체의 원점. 인하 기대가 살아야 리스크온. CME FedWatch 확률도 같이 봐야 한다.</div>
+    </div>
+    <div class="card" onclick="toggle('d3')">
+      <div class="card-label">미국 10년물 국채</div>
+      <div class="card-value">4.68%</div>
+      <div class="card-sub up">▲ 고금리 유지</div>
+      <div class="badge b-red">위험 — 주식 밸류 압박</div>
+      <div class="detail-panel" id="d3">30년차: 4.5% 이상이면 PER 압박 시작. 5% 돌파 시 2022년처럼 주식 전반 재편. 성장주 특히 직격. 연준 의도보다 시장금리가 먼저 움직인다.</div>
+    </div>
+    <div class="card" onclick="toggle('d4')">
+      <div class="card-label">VIX 공포지수</div>
+      <div class="card-value">22.4</div>
+      <div class="card-sub up">▲ 경계구간</div>
+      <div class="badge b-amb">주의 — 변동성 확대</div>
+      <div class="detail-panel" id="d4">30년차: 20↑ 시장 긴장, 30↑ 공포, 40↑ 극단공포(역발상 매수 신호). 지금은 경계구간. VIX spike 뒤 30일 이내 반등 확률 73%. 분할매수 타이밍.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: 통화·금리 -->
+<div class="sect" data-cat="macro">
+  <div class="section-title">통화·금리 환경 <span class="priority-tag p1">매일 확인</span></div>
+  <div class="grid3">
+    <div class="card" onclick="toggle('d5')">
+      <div class="card-label">원달러 환율</div>
+      <div class="card-value">1,462 원</div>
+      <div class="card-sub up">▲ 고환율 지속</div>
+      <div class="badge b-red">위험 — 1,500원 위협</div>
+      <div class="detail-panel" id="d5">30년차: 1,400원 뉴노멀 vs 1,500원 위기. 환율은 수입물가·기업원가·외국인 수급 3개를 동시에 움직인다. 미국주식 투자자는 환차손도 계산해야.</div>
+    </div>
+    <div class="card" onclick="toggle('d6')">
+      <div class="card-label">한미 금리차</div>
+      <div class="card-value">−1.75%p</div>
+      <div class="card-sub up">미국이 높음 — 자본이탈 압력</div>
+      <div class="badge b-red">위험 — 구조적 원화 약세</div>
+      <div class="detail-panel" id="d6">30년차: 금리차가 역전 상태이면 달러로 돈이 빨려간다. 1% 이상 차이면 외국인 수급에 지속 압력. 한은이 인하 못하는 진짜 이유다.</div>
+    </div>
+    <div class="card" onclick="toggle('d7')">
+      <div class="card-label">한국 기준금리</div>
+      <div class="card-value">3.50%</div>
+      <div class="card-sub neu">6회 연속 동결</div>
+      <div class="badge b-amb">주의 — 진퇴양난</div>
+      <div class="detail-panel" id="d7">30년차: 내리면 환율 폭등, 올리면 가계부채 폭발. 동결은 평화가 아니라 긴장 상태. 한은 발언에서 '완화' 단어가 늘어나면 선매수 신호.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: 한국 시장 수급 -->
+<div class="sect" data-cat="korea">
+  <div class="section-title">한국 시장 수급 <span class="priority-tag p1">외국인 수급 최우선</span></div>
+  <div class="grid3">
+    <div class="card" onclick="toggle('d8')">
+      <div class="card-label">코스피 지수</div>
+      <div class="card-value">2,487</div>
+      <div class="card-sub dn">▼ −1.2% 오늘</div>
+      <div class="badge b-amb">주의 — 서킷브레이커 이력</div>
+      <div class="detail-panel" id="d8">30년차: 코스피 숫자보다 '누가 사고 있는가'가 중요. 지수가 올라도 외국인이 파는 구조면 허상. 개인 매수 + 외국인 매도 = 시한폭탄 구조.</div>
+    </div>
+    <div class="card" onclick="toggle('d9')">
+      <div class="card-label">외국인 순매수 (월)</div>
+      <div class="card-value">−8.3조원</div>
+      <div class="card-sub up">11월 13조 순매도 이후 지속</div>
+      <div class="badge b-red">위험 — 스마트머니 이탈</div>
+      <div class="detail-panel" id="d9">30년차: 외국인 수급이 가장 중요한 단일 지표. 3개월 연속 순매도이면 추세 이탈로 봐야 한다. 반대로 외국인이 돌아오기 시작하면 진짜 반등 신호.</div>
+    </div>
+    <div class="card" onclick="toggle('d10')">
+      <div class="card-label">외환 보유고</div>
+      <div class="card-value">$4,280억</div>
+      <div class="card-sub up">전월 대비 −26억 달러</div>
+      <div class="badge b-red">위험 — 28년만 최대 감소</div>
+      <div class="detail-panel" id="d10">30년차: 외환보유고 감소는 정부가 환율 방어에 비상금을 쓰고 있다는 뜻. 계속 줄면 국가신인도 하락 → 외국인 추가 이탈 악순환. 3개월 연속 감소 시 경보.</div>
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:8px">
+    <div class="card" onclick="toggle('d11')">
+      <div class="card-label">개인 순매수 (월)</div>
+      <div class="card-value">+6.1조원</div>
+      <div class="card-sub up">외국인 물량 받는 중</div>
+      <div class="badge b-red">위험 — 역할 바뀜</div>
+      <div class="detail-panel" id="d11">30년차: 개인이 외국인 매도 물량을 받아내면 위험. '스마트머니가 팔고 개미가 사는' 구조는 역사적으로 하락 선행 신호다.</div>
+    </div>
+    <div class="card" onclick="toggle('d12')">
+      <div class="card-label">연기금 순매수 (월)</div>
+      <div class="card-value">+2.8조원</div>
+      <div class="card-sub neu">시장 받치는 중</div>
+      <div class="badge b-amb">주의 — 정책 매수 한계</div>
+      <div class="detail-panel" id="d12">30년차: 연기금은 '정책 매수'다. 무한정 받칠 수 없다. 연기금 + 개인이 외국인 매도를 받아내는 구조가 너무 오래 가면 결국 무너진다.</div>
+    </div>
+    <div class="card" onclick="toggle('d13')">
+      <div class="card-label">코스피 PER</div>
+      <div class="card-value">10.2배</div>
+      <div class="card-sub dn">역사적 저평가 구간</div>
+      <div class="badge b-grn">긍정 — 밸류에이션 매력</div>
+      <div class="detail-panel" id="d13">30년차: PER이 10배 이하면 역사적 저점. 다만 '코리아 디스카운트' 구조가 바뀌지 않으면 싼 게 더 싸질 수 있다. 외국인 복귀 신호와 함께 봐야.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: 에너지·원자재 -->
+<div class="sect" data-cat="commodity">
+  <div class="section-title">에너지·원자재 <span class="priority-tag p2">주 2회 확인</span></div>
+  <div class="grid4">
+    <div class="card" onclick="toggle('d14')">
+      <div class="card-label">WTI 유가</div>
+      <div class="card-value">$87.4</div>
+      <div class="card-sub up">▲ 중동 긴장 반영</div>
+      <div class="badge b-red">위험 — $90 돌파 주시</div>
+      <div class="detail-panel" id="d14">30년차: 유가는 모든 물가의 어머니. $90↑ 유지되면 Fed 인하 불가. $80↓ 안정되면 금리 인하 기대 부활 → 성장주·신흥국 동반 상승. 호르무즈 뉴스 = 즉시 확인.</div>
+    </div>
+    <div class="card" onclick="toggle('d15')">
+      <div class="card-label">금 (Gold)</div>
+      <div class="card-value">$5,020</div>
+      <div class="card-sub dn">▼ 일시 조정</div>
+      <div class="badge b-grn">긍정 — 중앙은행 매수 지속</div>
+      <div class="detail-panel" id="d15">30년차: 금값 하락은 공포가 아니라 매수 기회일 수 있다. 중앙은행이 연 800톤씩 사는 구조에서 하방은 단단하다. JP모건 $6,300, GS $5,400 목표.</div>
+    </div>
+    <div class="card" onclick="toggle('d16')">
+      <div class="card-label">은 (Silver)</div>
+      <div class="card-value">$81.2</div>
+      <div class="card-sub dn">▼ 조정 중</div>
+      <div class="badge b-grn">긍정 — 산업+안전자산 이중</div>
+      <div class="detail-panel" id="d16">30년차: 은은 금보다 변동성이 2배. 태양광·전기차 산업 수요가 붙으면 금보다 더 강하게 간다. 다만 경기침체 시 산업 수요 빠지면 금보다 더 많이 빠진다.</div>
+    </div>
+    <div class="card" onclick="toggle('d17')">
+      <div class="card-label">금/은 비율</div>
+      <div class="card-value">61.8배</div>
+      <div class="card-sub dn">은이 상대적 강세</div>
+      <div class="badge b-grn">긍정 — 은 저평가 구간</div>
+      <div class="detail-panel" id="d17">30년차: 금/은 비율 80 이상 = 은 극단 저평가. 역사적 평균 50~60배. 지금 60배면 은이 적절 구간에 진입. 위기 해소 + 산업 회복 시 은이 먼저 반응한다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: 경기 선행 -->
+<div class="sect" data-cat="macro">
+  <div class="section-title">경기 선행지표 <span class="priority-tag p3">월 1회 확인</span></div>
+  <div class="grid4">
+    <div class="card" onclick="toggle('d18')">
+      <div class="card-label">미국 CPI (YoY)</div>
+      <div class="card-value">3.4%</div>
+      <div class="card-sub neu">목표 2% 대비 초과</div>
+      <div class="badge b-amb">주의 — 금리 인하 제약</div>
+      <div class="detail-panel" id="d18">30년차: CPI보다 Core PCE가 Fed가 실제로 보는 지표. CPI는 후행. 3% 이하 안착해야 금리 인하 논의 본격화. 에너지·식품 제외한 Core 흐름이 핵심.</div>
+    </div>
+    <div class="card" onclick="toggle('d19')">
+      <div class="card-label">미국 PMI 제조업</div>
+      <div class="card-value">49.1</div>
+      <div class="card-sub up">수축 국면 (50 미만)</div>
+      <div class="badge b-amb">주의 — 경기 둔화 신호</div>
+      <div class="detail-panel" id="d19">30년차: PMI 50이 경기의 분수령. 50 아래면 수축, 연속 3개월 이하면 경기침체 진입 신호. 제조업 PMI + 서비스 PMI 같이 봐야 전체 그림이 나온다.</div>
+    </div>
+    <div class="card" onclick="toggle('d20')">
+      <div class="card-label">미국 실업률</div>
+      <div class="card-value">3.9%</div>
+      <div class="card-sub dn">여전히 낮은 수준</div>
+      <div class="badge b-grn">긍정 — 경기 버팀목</div>
+      <div class="detail-panel" id="d20">30년차: 실업률이 낮으면 Fed는 긴급 인하 안 한다. 4.5%↑ 빠르게 올라가면 그때부터 인하 압박. 현재는 경기가 버텨주는 상황. 주시 필요.</div>
+    </div>
+    <div class="card" onclick="toggle('d21')">
+      <div class="card-label">미국 신용 스프레드</div>
+      <div class="card-value">1.8%p</div>
+      <div class="card-sub dn">정상 범위</div>
+      <div class="badge b-grn">긍정 — 금융위기 아님</div>
+      <div class="detail-panel" id="d21">30년차: 신용 스프레드(하이일드-국채 차이)가 4%↑ 넘어가면 금융시스템 불안 신호. 2008년엔 20%까지 갔다. 지금은 1.8%면 정상. 이게 급등하면 즉시 현금 비중 확대.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: 수혜주 모니터 -->
+<div class="sect" data-cat="korea">
+  <div class="section-title">수혜주 모니터 (스크립트 추천 종목)</div>
+  <div class="grid3">
+    <div class="card" onclick="toggle('d22')">
+      <div class="card-label">캐터필러 (CAT) — 미국</div>
+      <div class="card-value">재건 + AI 인프라</div>
+      <div class="card-sub neu">중동 재건·데이터센터 이중 수혜</div>
+      <div class="badge b-amb">대기 — 전쟁 진정 후 진입</div>
+      <div class="detail-panel" id="d22">30년차: 좋은 스토리지만 지금 당장 사면 안 된다. 전쟁 뉴스에 이미 일부 선반영. 유가 안정 + 재건 수주 뉴스 나오는 구간에서 분할 진입이 맞다.</div>
+    </div>
+    <div class="card" onclick="toggle('d23')">
+      <div class="card-label">현대건설 — 한국</div>
+      <div class="card-value">중동 재건 수주</div>
+      <div class="card-sub neu">사우디 네트워크·경험 보유</div>
+      <div class="badge b-amb">대기 — 수주 뉴스 확인 후</div>
+      <div class="detail-panel" id="d23">30년차: 수주 발표 전 미리 사는 건 도박. 수주 확정 뉴스 나오면 초기 급등 후 조정 구간에서 분할 진입. 중국 기업 경쟁 리스크 항상 체크.</div>
+    </div>
+    <div class="card" onclick="toggle('d24')">
+      <div class="card-label">두산에너빌리티 — 한국</div>
+      <div class="card-value">원전 + SMR</div>
+      <div class="card-sub neu">체코 수주·창원 SMR 공장</div>
+      <div class="badge b-grn">관심 — 에너지안보 장기 테마</div>
+      <div class="detail-panel" id="d24">30년차: 유가 급등→에너지안보→원전 관심 사이클은 긴 시간이 걸린다. 단기 뉴스 반응 쫓지 말고 SMR 글로벌 수주 흐름 따라 분기별로 점검하는 종목.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: 종합 신호등 -->
+<div class="sect" data-cat="signal">
+  <div class="section-title">종합 신호등 — 지금 시장 어디 있나</div>
+  <div class="master-card">
+    <div class="grid2" style="gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px">위험 신호 (지금 켜진 것)</div>
+        <div class="signal-bar"><div class="dot dot-red"></div><div class="signal-text">외국인 3개월 연속 순매도 — 스마트머니 이탈 진행 중</div></div>
+        <div class="signal-bar"><div class="dot dot-red"></div><div class="signal-text">원달러 1,460원대 — 구조적 고환율 국면</div></div>
+        <div class="signal-bar"><div class="dot dot-red"></div><div class="signal-text">외환보유고 28년 만에 최대 월간 감소</div></div>
+        <div class="signal-bar"><div class="dot dot-red"></div><div class="signal-text">한미 금리차 −1.75%p — 자본이탈 압력 지속</div></div>
+        <div class="signal-bar"><div class="dot dot-red"></div><div class="signal-text">미국 10년물 4.68% — 성장주 밸류 압박</div></div>
+        <div class="signal-bar"><div class="dot dot-amb"></div><div class="signal-text">VIX 22 — 공포 아직 극단 아님 (역발상 아직 이름)</div></div>
+        <div class="signal-bar"><div class="dot dot-amb"></div><div class="signal-text">PMI 49.1 — 수축 국면 진입, 추세 확인 필요</div></div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px">안전 신호 (버팀목)</div>
+        <div class="signal-bar"><div class="dot dot-grn"></div><div class="signal-text">미국 실업률 3.9% — 경기 완전 붕괴 아님</div></div>
+        <div class="signal-bar"><div class="dot dot-grn"></div><div class="signal-text">신용 스프레드 1.8% — 금융위기 수준 아님</div></div>
+        <div class="signal-bar"><div class="dot dot-grn"></div><div class="signal-text">금 $5,020 — 중앙은행 매수로 하방 지지</div></div>
+        <div class="signal-bar"><div class="dot dot-grn"></div><div class="signal-text">코스피 PER 10배 — 밸류에이션 역사적 저점</div></div>
+        <div class="signal-bar"><div class="dot dot-grn"></div><div class="signal-text">금/은 비율 61배 — 은 저평가 구간 진입</div></div>
+        <div style="margin-top:12px;padding:10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+          <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px">30년차 결론</div>
+          <div style="font-size:12px;color:var(--color-text-primary);line-height:1.7">지금은 공격보다 <b>방어</b> 국면. 외국인이 돌아오는 신호(3개월 연속 순매수) 확인 전까지는 현금 비중 유지. 달러 자산 5~10%, 금 5%, 나머지는 분할 대기.</div>
+        </div>
+      </div>
+    </div>
+    <hr class="divider" style="margin-top:1rem">
+    <div style="margin-top:.75rem">
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">핵심 지표 모니터링 우선순위</div>
+      <div class="grid3" style="gap:6px">
+        <div style="font-size:11px;padding:6px 8px;background:var(--color-background-danger);border-radius:var(--border-radius-md);color:var(--color-text-danger)"><b>매일</b> — 달러인덱스·환율·외국인수급·VIX·유가</div>
+        <div style="font-size:11px;padding:6px 8px;background:var(--color-background-warning);border-radius:var(--border-radius-md);color:var(--color-text-warning)"><b>주 2회</b> — 미국 10년물·금은 가격·신용스프레드</div>
+        <div style="font-size:11px;padding:6px 8px;background:var(--color-background-info);border-radius:var(--border-radius-md);color:var(--color-text-info)"><b>월 1회</b> — CPI·PMI·실업률·외환보유고·PER</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function toggle(id){
+  const p=document.getElementById(id);
+  const isShow=p.classList.contains('show');
+  document.querySelectorAll('.detail-panel').forEach(e=>e.classList.remove('show'));
+  if(!isShow)p.classList.add('show');
+}
+function switchTab(cat){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  event.target.classList.add('on');
+  document.querySelectorAll('.sect').forEach(s=>{
+    if(cat==='all'){s.style.display='block';return}
+    const c=s.getAttribute('data-cat');
+    s.style.display=(c===cat||cat==='signal'&&c==='signal')?'block':'none';
+  });
+  if(cat==='signal'){
+    document.querySelectorAll('.sect').forEach(s=>s.style.display=s.getAttribute('data-cat')==='signal'?'block':'none');
+  }
+}
+</script>

@@ -1,0 +1,181 @@
+# 전략 설정 파일
+# 모든 매매 전략의 파라미터를 중앙에서 관리합니다.
+
+# =============================================================================
+# 기본 설정
+# =============================================================================
+default:
+  lookback_period: 60    # 기본 관찰 기간
+  min_data_points: 100   # 최소 필요 데이터 수
+
+# =============================================================================
+# 이동평균 전략 (Moving Average)
+# =============================================================================
+moving_average:
+  # 이중 이동평균 교차
+  dual_ma:
+    short_period: 5
+    long_period: 20
+  
+  # 삼중 이동평균
+  triple_ma:
+    short_period: 5
+    medium_period: 20
+    long_period: 60
+
+# =============================================================================
+# RSI 전략
+# =============================================================================
+rsi:
+  period: 14
+  oversold_threshold: 30     # 과매도 (매수 신호)
+  overbought_threshold: 70   # 과매수 (매도 신호)
+  use_divergence: false
+
+# =============================================================================
+# MACD 전략
+# =============================================================================
+macd:
+  fast_period: 12
+  slow_period: 26
+  signal_period: 9
+  use_histogram: true
+
+# =============================================================================
+# 볼린저밴드 전략
+# =============================================================================
+bollinger_band:
+  period: 20
+  std_dev: 2.0
+  use_squeeze: true
+  squeeze_threshold: 0.02
+
+# =============================================================================
+# 복합 지표 전략
+# =============================================================================
+multi_indicator:
+  min_consensus: 2       # 최소 합의 지표 수
+  weights:
+    ma: 1.0
+    rsi: 1.0
+    macd: 0.8
+    bollinger: 0.8
+  indicators:
+    - moving_average
+    - rsi
+    - macd
+    - bollinger_band
+
+# =============================================================================
+# 모멘텀 전략
+# =============================================================================
+momentum:
+  lookback: 20
+  threshold: 0.05
+  use_volume_confirmation: true
+
+# =============================================================================
+# ML 전략 (RandomForest, GradientBoosting)
+# =============================================================================
+ml:
+  random_forest:
+    n_estimators: 100
+    max_depth: 10
+    min_samples_split: 5
+    random_state: 42
+    n_jobs: -1
+
+  gradient_boosting:
+    n_estimators: 100
+    max_depth: 5
+    learning_rate: 0.1
+    random_state: 42
+
+  lstm:
+    lookback: 60
+    hidden_size: 64
+    num_layers: 2
+    dropout: 0.2
+    epochs: 50
+    batch_size: 32
+
+  # 앙상블 설정
+  ensemble:
+    voting: "soft"     # soft 또는 hard
+    models:
+      - random_forest
+      - gradient_boosting
+
+  # 피처 엔지니어링
+  features:
+    use_technical_indicators: true
+    forward_days: 5
+    threshold: 0.02
+    feature_list:
+      - ma_5_ratio
+      - ma_10_ratio
+      - ma_20_ratio
+      - ma_50_ratio
+      - rsi
+      - macd
+      - macd_hist
+      - bb_width
+      - bb_position
+      - volume_ratio
+      - return_1d
+      - return_3d
+      - return_5d
+      - atr_ratio
+
+# =============================================================================
+# 강화학습 전략 (RL)
+# =============================================================================
+reinforcement_learning:
+  dqn:
+    learning_rate: 0.001
+    gamma: 0.99
+    epsilon_start: 1.0
+    epsilon_end: 0.01
+    epsilon_decay: 0.995
+    memory_size: 10000
+    batch_size: 64
+    target_update: 10
+  
+  ppo:
+    learning_rate: 0.0003
+    n_steps: 2048
+    batch_size: 64
+    n_epochs: 10
+    gamma: 0.99
+    gae_lambda: 0.95
+
+  environment:
+    # initial_capital 및 commission_rate는 config/trading.yaml의 _defaults 섹션 참조
+    window_size: 20
+    max_position: 1.0
+
+# =============================================================================
+# Exit 전략
+# =============================================================================
+exit:
+  # 고정 손절/익절
+  fixed:
+    stop_loss_pct: -0.03      # -3% 손절
+    take_profit_pct: 0.05     # +5% 익절
+  
+  # 트레일링 스탑
+  trailing_stop:
+    enabled: true
+    activation_pct: 0.02      # 2% 수익 시 활성화
+    trail_pct: 0.015          # 1.5% 트레일링
+  
+  # ATR 기반
+  atr_based:
+    enabled: true
+    atr_period: 14
+    atr_multiplier: 2.0
+  
+  # 시간 기반
+  time_based:
+    max_holding_days: 30
+    force_exit_on_friday: false
