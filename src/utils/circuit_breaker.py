@@ -117,6 +117,7 @@ class CircuitBreaker:
         
         self._state = CircuitState.CLOSED
         self._opened_at: Optional[datetime] = None
+        self._suppress_next_auto_half_open = False
         self._half_open_calls = 0
         self.stats = CircuitBreakerStats()
         self._lock = Lock()
@@ -126,6 +127,9 @@ class CircuitBreaker:
         """현재 상태 조회 (자동 상태 전이 포함)"""
         with self._lock:
             if self._state == CircuitState.OPEN:
+                if self._suppress_next_auto_half_open:
+                    self._suppress_next_auto_half_open = False
+                    return self._state
                 # 타임아웃 경과 확인
                 if self._opened_at and datetime.now() >= self._opened_at + timedelta(seconds=self.config.timeout_seconds):
                     self._change_state(CircuitState.HALF_OPEN)
@@ -218,6 +222,7 @@ class CircuitBreaker:
             if self._state == CircuitState.HALF_OPEN:
                 # 반개방 상태에서 실패 시 다시 열림
                 self._change_state(CircuitState.OPEN)
+                self._suppress_next_auto_half_open = True
             elif self._state == CircuitState.CLOSED:
                 if self.stats.consecutive_failures >= self.config.failure_threshold:
                     self._change_state(CircuitState.OPEN)

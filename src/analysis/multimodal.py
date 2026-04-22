@@ -65,6 +65,39 @@ def _get_numeric_series(df: pd.DataFrame, column: str) -> pd.Series:
     return cast(pd.Series, pd.to_numeric(df[column], errors="coerce")).dropna()
 
 
+def _build_market_context_summary(df: pd.DataFrame) -> str:
+    close = _get_numeric_series(df, "Close")
+    if len(close) < 20:
+        return "시장 컨텍스트:\n- 데이터가 부족해 추세 맥락을 안정적으로 계산하지 못했습니다."
+
+    latest_close = float(close.iloc[-1])
+    ma20_series = cast(pd.Series, close.rolling(window=20, min_periods=20).mean())
+    ma20 = float(ma20_series.dropna().iloc[-1])
+    if latest_close > ma20:
+        short_trend = "20일선 위의 단기 상승 흐름"
+    elif latest_close < ma20:
+        short_trend = "20일선 아래의 단기 약세 흐름"
+    else:
+        short_trend = "20일선 부근의 중립 흐름"
+
+    if len(close) >= 60:
+        ma60_series = cast(pd.Series, close.rolling(window=60, min_periods=60).mean())
+        ma60 = float(ma60_series.dropna().iloc[-1])
+        medium_trend = "60일선 위" if latest_close > ma60 else "60일선 아래"
+    else:
+        medium_trend = "60일선 데이터 부족"
+
+    momentum_base = float(close.iloc[-20])
+    momentum_pct = ((latest_close - momentum_base) / momentum_base * 100) if momentum_base else 0.0
+
+    return (
+        "시장 컨텍스트:\n"
+        f"- 단기 추세: {short_trend}\n"
+        f"- 중기 위치: {medium_trend}\n"
+        f"- 20거래일 모멘텀: {momentum_pct:+.2f}%"
+    )
+
+
 def _build_technical_summary(df: pd.DataFrame) -> str:
     close = _get_numeric_series(df, "Close")
     if len(close) < 26:
@@ -147,6 +180,12 @@ def _build_technical_summary(df: pd.DataFrame) -> str:
     )
 
 
+def _coerce_string_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    return []
+
+
 class MultimodalAnalyst:
     """뮤티모달 통합 분석기."""
 
@@ -171,6 +210,10 @@ class MultimodalAnalyst:
             "confidence": 0.0,
             "reason": "분석에 필요한 데이터가 부족하거나 분석에 실패했습니다.",
             "technical_summary": "",
+            "market_context_summary": "",
+            "analysis_sources": [],
+            "key_drivers": [],
+            "risk_factors": [],
         }
 
         if not self.model:
@@ -199,7 +242,11 @@ class MultimodalAnalyst:
                 social_text += "- 관련 소셜 데이터가 충분하지 않습니다." + line_break
 
             technical_summary = _build_technical_summary(df)
+            market_context_summary = _build_market_context_summary(df)
+            analysis_sources = ["시장 컨텍스트", "기술 지표", "소셜 심리"]
             result["technical_summary"] = technical_summary
+            result["market_context_summary"] = market_context_summary
+            result["analysis_sources"] = analysis_sources
 
             prompt_text = f"""
 다음 종목 '{cleaned_ticker}'을 제공된 차트 이미지와 소셜 심리 요약을 바탕으로 분석하세요.
@@ -207,19 +254,23 @@ class MultimodalAnalyst:
 컨텍스트:
 - 조회 심볼: {selected_ticker}
 {social_text}
+{market_context_summary}
 {technical_summary}
 
 작업:
 1. 차트의 기술적 패턴(추세, 지지/저항, 거래량)을 분석하세요.
 2. RSI, MACD, 볼린저 밴드, 거래량 등 제공된 기술 지표 요약을 함께 해석하세요.
-3. 소셜 심리 맥락을 함께 고려하세요.
-4. 최종 매매 신호를 매수, 매도, 보유 중 하나로 제시하세요.
+3. 시장 컨텍스트를 바탕으로 핵심 판단 근거와 리스크 요인을 구조적으로 정리하세요.
+4. 소셜 심리 맥락을 함께 고려하세요.
+5. 최종 매매 신호를 매수, 매도, 보유 중 하나로 제시하세요.
 
 출력 형식(JSON만):
 {{
     "signal": "매수" or "매도" or "보유",
     "confidence": 0.0 to 1.0,
-    "reason": "분석 근거를 한국어로 간결하게 설명"
+    "reason": "분석 근거를 한국어로 간결하게 설명",
+    "key_drivers": ["핵심 판단 근거 1", "핵심 판단 근거 2"],
+    "risk_factors": ["주의할 리스크 1", "주의할 리스크 2"]
 }}
 """
 
@@ -233,6 +284,10 @@ class MultimodalAnalyst:
             try:
                 parsed = json.loads(text)
                 parsed["technical_summary"] = technical_summary
+                parsed["market_context_summary"] = market_context_summary
+                parsed["analysis_sources"] = analysis_sources
+                parsed["key_drivers"] = _coerce_string_list(parsed.get("key_drivers"))
+                parsed["risk_factors"] = _coerce_string_list(parsed.get("risk_factors"))
                 return parsed
             except json.JSONDecodeError:
                 logger.error(f"LLM 응답 파싱 실패: {text}")

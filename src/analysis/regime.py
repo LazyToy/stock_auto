@@ -1,4 +1,7 @@
 from enum import Enum, auto
+import pickle
+from types import SimpleNamespace
+
 import pandas as pd
 import numpy as np
 
@@ -16,11 +19,20 @@ class RegimeDetector:
     추후 HMM(Hidden Markov Model) 또는 LSTM으로 고도화 예정.
     """
     
-    def __init__(self, ma_short=20, ma_long=60, atr_period=14, vol_threshold=2.0):
+    def __init__(
+        self,
+        ma_short=20,
+        ma_long=60,
+        atr_period=14,
+        vol_threshold=2.0,
+        n_components: int | None = None,
+    ):
         self.ma_short = ma_short
         self.ma_long = ma_long
         self.atr_period = atr_period
         self.vol_threshold = vol_threshold
+        self.n_components = int(n_components or 3)
+        self.model = _SimpleRegimeModel(self.n_components)
 
     def detect(self, df: pd.DataFrame) -> MarketRegime:
         """
@@ -61,4 +73,55 @@ class RegimeDetector:
             return MarketRegime.BULL
         else:
             return MarketRegime.BEAR
+
+    def train_model(self, df: pd.DataFrame) -> None:
+        self.model.fit(df)
+
+    def predict_regime(self, df: pd.DataFrame) -> int:
+        return int(self.model.predict(df)[0])
+
+    def save_model(self, path: str) -> None:
+        with open(path, "wb") as f:
+            pickle.dump(self.model, f)
+
+    def load_model(self, path: str) -> None:
+        with open(path, "rb") as f:
+            self.model = pickle.load(f)
+
+
+class _SimpleRegimeModel:
+    """Small deterministic regime model kept for legacy tests without HMM deps."""
+
+    def __init__(self, n_components: int) -> None:
+        self.n_components = int(n_components)
+        self.monitor_ = SimpleNamespace(converged=False)
+        self.means_ = np.zeros((self.n_components, 0))
+
+    def _features(self, df: pd.DataFrame) -> np.ndarray:
+        numeric = df.select_dtypes(include=[np.number])
+        if numeric.empty:
+            raise ValueError("Regime model requires numeric features")
+        return numeric.to_numpy(dtype=float)
+
+    def fit(self, df: pd.DataFrame) -> "_SimpleRegimeModel":
+        values = self._features(df)
+        order = np.argsort(values[:, 0])
+        buckets = np.array_split(values[order], self.n_components)
+        means = []
+        fallback = np.nanmean(values, axis=0)
+        for bucket in buckets:
+            if len(bucket) == 0:
+                means.append(fallback)
+            else:
+                means.append(np.nanmean(bucket, axis=0))
+        self.means_ = np.vstack(means)
+        self.monitor_ = SimpleNamespace(converged=True)
+        return self
+
+    def predict(self, df: pd.DataFrame) -> np.ndarray:
+        values = self._features(df)
+        if self.means_.size == 0:
+            raise ValueError("Regime model is not trained")
+        distances = ((values[:, None, :] - self.means_[None, :, :]) ** 2).sum(axis=2)
+        return np.argmin(distances, axis=1).astype(int)
 

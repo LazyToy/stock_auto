@@ -97,6 +97,8 @@ from dashboard.components.overview_tab import render_overview_tab
 from dashboard.components.market_tab import render_market_tab
 from dashboard.components.growth_tab import render_growth_tab
 from dashboard.components.macro_tab import render_macro_tab
+from dashboard.components.crawling_run_tab import render_crawling_run_tab
+from dashboard.components.crawling_results_tab import render_crawling_results_tab
 
 # ============================================
 # 유틸리티 함수
@@ -127,10 +129,11 @@ st.sidebar.title("⚙️ Dashboard Settings")
 auto_refresh = st.sidebar.checkbox("Auto Refresh (30s)", value=False)
 
 # 탭 구성 (종합 / KR / US / 성장주 탐색 / AI Copilot / Deep Analysis / AutoML / Stress Test / Agent Debate / Macro)
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12 = st.tabs([
     "📊 Overview", "🇰🇷 Korean Market", "🇺🇸 US Market",
     "🌱 성장주 탐색", "🤖 AI Copilot", "🧠 심층 분석",
-    "🧬 AutoML", "💥 Stress Test", "💬 AI 에이전트 토론", "🌍 Macro 30Y"
+    "🧬 AutoML", "💥 Stress Test", "💬 AI 에이전트 토론", "🌍 Macro 30Y",
+    "크롤링 실행", "크롤링 결과"
 ])
 
 # 데이터 로드
@@ -278,10 +281,32 @@ with tab6:
                 st.markdown("**분석 근거**")
                 st.info(reason)
 
+                market_context_summary = result.get("market_context_summary", "")
+                if market_context_summary:
+                    st.markdown("**시장 컨텍스트**")
+                    st.text(market_context_summary)
+
                 technical_summary = result.get("technical_summary", "")
                 if technical_summary:
                     st.markdown("**기술 지표 요약**")
                     st.text(technical_summary)
+
+                analysis_sources = result.get("analysis_sources", [])
+                if analysis_sources:
+                    st.markdown("**분석 출처**")
+                    st.markdown(", ".join(str(source) for source in analysis_sources))
+
+                key_drivers = result.get("key_drivers", [])
+                if key_drivers:
+                    st.markdown("**핵심 판단 근거**")
+                    for driver in key_drivers:
+                        st.markdown(f"- {driver}")
+
+                risk_factors = result.get("risk_factors", [])
+                if risk_factors:
+                    st.markdown("**리스크 요인**")
+                    for risk in risk_factors:
+                        st.markdown(f"- {risk}")
 
                 if "raw_text" in result:
                     with st.expander("원본 LLM 응답"):
@@ -610,6 +635,12 @@ with tab10:
     st.header("🌍 매크로 투자 대시보드 (30년차 뷰)")
     st.caption("실시간 yfinance 데이터를 기반으로 1분마다 업데이트되며, 매크로 핵심 지표와 30년차 트레이더의 인사이트를 제공합니다.")
     render_macro_tab()
+
+with tab11:
+    render_crawling_run_tab()
+
+with tab12:
+    render_crawling_results_tab()
 
 # 자동 새로고침 로직
 if auto_refresh:

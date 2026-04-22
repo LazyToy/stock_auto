@@ -89,6 +89,22 @@ def test_dashboard_shows_technical_indicator_summary_in_deep_analysis():
     assert 'st.text(technical_summary)' in text
 
 
+def test_dashboard_shows_market_context_and_explanation_lists_in_deep_analysis():
+    text = Path("dashboard/app.py").read_text(encoding="utf-8")
+
+    assert 'market_context_summary = result.get("market_context_summary", "")' in text
+    assert 'st.markdown("**시장 컨텍스트**")' in text
+    assert 'key_drivers = result.get("key_drivers", [])' in text
+    assert 'risk_factors = result.get("risk_factors", [])' in text
+
+
+def test_dashboard_shows_analysis_sources_in_deep_analysis():
+    text = Path("dashboard/app.py").read_text(encoding="utf-8")
+
+    assert 'analysis_sources = result.get("analysis_sources", [])' in text
+    assert 'st.markdown("**분석 출처**")' in text
+
+
 def test_build_chart_title_uses_symbol_label_when_available():
     assert build_chart_title("317330", "DUKSAN TECHOPIA Co.,Ltd.") == "317330 (DUKSAN TECHOPIA Co.,Ltd.) 분석"
     assert build_chart_title("AAPL", "Apple") == "AAPL (Apple) 분석"

@@ -98,6 +98,20 @@ class MultiIndicatorStrategy(BaseStrategy):
             rsi_sig = signals['rsi_signal'].iloc[i]
             bb_sig = signals['bb_signal'].iloc[i]
             macd_sig = signals['macd_signal'].iloc[i]
+
+            if ma_sig == 0 and 'position' in ma_signals:
+                ma_sig = ma_signals['position'].iloc[i]
+            if macd_sig == 0 and 'position' in macd_signals:
+                macd_sig = macd_signals['position'].iloc[i]
+            if 'rsi' in rsi_signals:
+                rsi_value = rsi_signals['rsi'].iloc[i]
+                if pd.notna(rsi_value):
+                    rsi_sig = 1 if rsi_value >= 50 else -1
+            if bb_sig == 0 and {'bb_middle'}.issubset(bb_signals.columns):
+                curr_price = signals['close'].iloc[i]
+                bb_middle = bb_signals['bb_middle'].iloc[i]
+                if pd.notna(bb_middle):
+                    bb_sig = 1 if curr_price >= bb_middle else -1
             
             # 매수 신호 카운트
             buy_votes = sum([

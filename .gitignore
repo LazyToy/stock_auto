@@ -30,6 +30,9 @@ build/
 data/*.csv
 data/*.parquet
 data/*.db
+data/**/*.sqlite3
+data/crawling/cache/
+
 reports/*.html
 reports/*.png
 reports/*.pdf
@@ -58,3 +61,16 @@ trading_state.json
 # OS
 .DS_Store
 Thumbs.db
+
+# stock_crawling merge artifacts
+stock_crawling/.git/
+stock_crawling/stock_crawling/
+stock_crawling/node_modules/
+stock_crawling/dist/
+stock_crawling/.env*
+stock_crawling/service_account*.json
+
+# secrets
+service_account*.json
+config/google_service_account.json
+secrets/

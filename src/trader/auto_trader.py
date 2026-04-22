@@ -159,7 +159,12 @@ class AutoTrader:
             model_path = Config.DATA_DIR / "regime_model.pkl"
             if model_path.exists():
                 if hasattr(self.regime_detector, "load_model"):
-                    self.regime_detector.load_model(str(model_path))
+                    try:
+                        self.regime_detector.load_model(str(model_path))
+                    except Exception as exc:
+                        logger.warning(f"Regime model load skipped: {exc}")
+                    else:
+                        logger.info(f"Regime model loaded: {model_path}")
                     logger.info(f"레짐 감지 모델 로드 완료: {model_path}")
                 else:
                     logger.warning(

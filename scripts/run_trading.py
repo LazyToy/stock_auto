@@ -174,12 +174,10 @@ def run_single_strategy(
         is_mock=is_mock,
         client_cls=KISAPIClient,
     )
-    broker = _ReportingBroker(
-        build_kis_broker(
-            market=market,
-            is_mock=is_mock,
-            broker_cls=KISBroker,
-        )
+    broker = build_kis_broker(
+        market=market,
+        is_mock=is_mock,
+        broker_cls=KISBroker,
     )
     style = strategy_type.upper() if strategy_type in ["momentum", "value"] else "VALUE"
 

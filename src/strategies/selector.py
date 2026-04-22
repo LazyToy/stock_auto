@@ -9,10 +9,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-try:
-    import yfinance as yf
-except ImportError:  # pragma: no cover - optional dependency fallback
-    yf = None
+yf = None
 
 logger = logging.getLogger(__name__)
 

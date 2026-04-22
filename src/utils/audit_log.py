@@ -44,7 +44,7 @@ class AuditEvent:
 class AuditLogger:
     """감사 로거 클래스"""
     
-    def __init__(self, log_file: str = "logs/audit.jsonl"):
+    def __init__(self, log_file: str = "logs/active/audit.jsonl"):
         """
         초기화
         

@@ -5,14 +5,36 @@ import requests
 import json
 import logging
 from typing import Optional
-from src.config import Config
 
 logger = logging.getLogger(__name__)
 
+_PLACEHOLDER_VALUES = {
+    "디스코드_웹훅_URL",
+    "봇토큰",
+    "챗ID",
+}
+
+
+def _is_configured(value: Optional[str]) -> bool:
+    if not value:
+        return False
+    normalized = value.strip()
+    if not normalized:
+        return False
+    return normalized not in _PLACEHOLDER_VALUES
+
+
+def _get_config():
+    from src.config import Config
+
+    return Config
+
+
 def send_discord_message(message: str, webhook_url: str = None) -> bool:
     """디스코드 웹훅으로 메시지 전송"""
-    url = webhook_url or Config.DISCORD_WEBHOOK_URL
-    if not url:
+    config = _get_config()
+    url = webhook_url or config.DISCORD_WEBHOOK_URL
+    if not _is_configured(url):
         logger.warning("Discord Webhook URL이 설정되지 않았습니다.")
         return False
         
@@ -39,10 +61,11 @@ def send_discord_message(message: str, webhook_url: str = None) -> bool:
 
 def send_telegram_message(message: str) -> bool:
     """텔레그램 봇 API로 메시지 전송"""
-    token = Config.TELEGRAM_BOT_TOKEN
-    chat_id = Config.TELEGRAM_CHAT_ID
+    config = _get_config()
+    token = config.TELEGRAM_BOT_TOKEN
+    chat_id = config.TELEGRAM_CHAT_ID
     
-    if not token or not chat_id:
+    if not _is_configured(token) or not _is_configured(chat_id):
         # logger.warning("텔레그램 설정이 없습니다.")
         return False
         
@@ -69,11 +92,13 @@ def send_notification(message: str) -> bool:
     success_telegram = False
     
     # 2. 디스코드 (우선)
-    if Config.DISCORD_WEBHOOK_URL:
+    config = _get_config()
+
+    if _is_configured(config.DISCORD_WEBHOOK_URL):
         success_discord = send_discord_message(message)
         
     # 3. 텔레그램 (차순위)
-    if Config.TELEGRAM_BOT_TOKEN:
+    if _is_configured(config.TELEGRAM_BOT_TOKEN) and _is_configured(config.TELEGRAM_CHAT_ID):
         success_telegram = send_telegram_message(message)
         
     return success_discord or success_telegram

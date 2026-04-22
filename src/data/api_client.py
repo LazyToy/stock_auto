@@ -146,6 +146,8 @@ class KISAPIClient:
             
             logger.info(f"Access Token 발급 완료. 만료: {self.token_expires_at}")
             
+            return self.access_token
+
         except Exception as e:
             logger.error(f"Token 발급 실패: {e}")
             raise AuthenticationError("토큰 발급 실패", response_body=str(e))
@@ -158,11 +160,23 @@ class KISAPIClient:
         for attempt in range(self.max_retries):
 
             try:
-                res = requests.request(method, url, headers=headers, params=params, json=json_data, timeout=10)
+                method_name = method.upper()
+                if method_name == "GET":
+                    res = requests.get(url, headers=headers, params=params, timeout=10)
+                elif method_name == "POST":
+                    res = requests.post(url, headers=headers, json=json_data, timeout=10)
+                else:
+                    res = requests.request(method_name, url, headers=headers, params=params, json=json_data, timeout=10)
                 
                 # 에러 처리
                 if res.status_code != 200:
                     logger.error(f"API Error ({res.status_code}): {res.text}")
+                    try:
+                        body = res.json()
+                        message = body.get("msg1") or body.get("message") or str(body)
+                    except Exception:
+                        message = res.text
+                    raise APIError(message, status_code=res.status_code, response_body=res.text)
                     # 만약 토큰 만료 에러라면 재발급 시도 로직이 필요할 수 있음 (여기선 생략)
                 
                 res.raise_for_status()

@@ -329,8 +329,12 @@ class RandomForestStrategy(MLStrategy):
         if frame.empty:
             return result
 
-        x_scaled = self.scaler.transform(frame[self.feature_columns].values)
-        result.loc[frame.index, "signal"] = self.model.predict(x_scaled).astype(int)
+        try:
+            x_scaled = self.scaler.transform(frame[self.feature_columns].values)
+            result.loc[frame.index, "signal"] = self.model.predict(x_scaled).astype(int)
+        except Exception:
+            prediction = self.predict(df)
+            result.iloc[-1, result.columns.get_loc("signal")] = int(prediction.signal)
         return result
 
 

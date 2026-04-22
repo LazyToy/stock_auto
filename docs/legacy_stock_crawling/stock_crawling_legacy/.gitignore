@@ -1,0 +1,36 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+stock_crawling/
+
+# Secrets and local credentials
+service_account.json
+service_account*.json
+
+# Generated caches
+sector_map_kr.json
+
+# Editor / local agent settings
+.vscode/
+.claude/
+.omc/

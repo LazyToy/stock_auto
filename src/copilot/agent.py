@@ -68,6 +68,9 @@ class CopilotAgent:
 
             def _invoke_with_key(api_key: str):
                 """api_key를 사용해 llm 실행 (fallback 지원용)"""
+                if api_key == self._key_manager.get_available_key() and self.llm_with_tools is not None:
+                    return self.llm_with_tools.invoke(self.chat_history)
+
                 lc_llm = ChatGoogleGenerativeAI(
                     model=self._model_name,
                     google_api_key=api_key,

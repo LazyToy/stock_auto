@@ -267,7 +267,10 @@ class MinScoreExit(BaseExitStrategy):
         score = context.current_score
 
         if score < self.min_score:
-            return ExitSignal(should_exit=True, reason=f"Score {score} < min {self.min_score}")
+            return ExitSignal.full_exit(
+                reason=f"Score {score} < min {self.min_score}",
+                price=context.current_price,
+            )
 
         # Context 점수가 기본값(5.0)이고 내부 점수가 있으면 사용
         if score == 5.0 and self._current_scores:

@@ -162,5 +162,85 @@ class TestMultimodalAnalyst(unittest.TestCase):
         self.assertIn("20일 평균 대비", prompt_text)
 
 
+    @patch("src.analysis.market_data.MarketDataFetcher.fetch_history")
+    @patch("src.data.social.RedditScraper.fetch_hot_posts")
+    @patch("src.analysis.chart.ChartGenerator.generate_chart")
+    def test_analyze_stock_prompt_requests_market_context_and_structured_explanation(self, mock_chart, mock_reddit, mock_history):
+        """심층분석 프롬프트는 시장 컨텍스트와 구조화된 설명 필드를 요구해야 한다."""
+        index = pd.date_range("2024-01-01", periods=70, freq="D")
+        mock_history.return_value = pd.DataFrame(
+            {
+                "Close": [100 + i for i in range(70)],
+                "Volume": [1000 + (i * 5) for i in range(70)],
+            },
+            index=index,
+        )
+        mock_reddit.return_value = []
+        mock_chart.return_value = b"fake_image_bytes"
+
+        mock_response = MagicMock()
+        mock_response.text = '{"signal": "BUY", "confidence": 0.8, "reason": "호전적"}'
+        self.model.generate_content.return_value = mock_response
+
+        self.analyst.analyze_stock("005930")
+
+        prompt_text = self.model.generate_content.call_args.args[0][0]
+        self.assertIn("시장 컨텍스트", prompt_text)
+        self.assertIn('"key_drivers"', prompt_text)
+        self.assertIn('"risk_factors"', prompt_text)
+
+    @patch("src.analysis.market_data.MarketDataFetcher.fetch_history")
+    @patch("src.data.social.RedditScraper.fetch_hot_posts")
+    @patch("src.analysis.chart.ChartGenerator.generate_chart")
+    def test_analyze_stock_returns_market_context_and_default_explanation_lists(self, mock_chart, mock_reddit, mock_history):
+        """LLM이 상세 설명을 비워도 시장 컨텍스트와 기본 설명 리스트는 반환해야 한다."""
+        index = pd.date_range("2024-01-01", periods=70, freq="D")
+        mock_history.return_value = pd.DataFrame(
+            {
+                "Close": [100 + i for i in range(70)],
+                "Volume": [1000 + (i * 5) for i in range(70)],
+            },
+            index=index,
+        )
+        mock_reddit.return_value = []
+        mock_chart.return_value = b"fake_image_bytes"
+
+        mock_response = MagicMock()
+        mock_response.text = '{"signal": "BUY", "confidence": 0.8, "reason": "호전적"}'
+        self.model.generate_content.return_value = mock_response
+
+        result = self.analyst.analyze_stock("005930")
+
+        self.assertIn("market_context_summary", result)
+        self.assertIn("시장 컨텍스트", result["market_context_summary"])
+        self.assertEqual(result["key_drivers"], [])
+        self.assertEqual(result["risk_factors"], [])
+
+
+    @patch("src.analysis.market_data.MarketDataFetcher.fetch_history")
+    @patch("src.data.social.RedditScraper.fetch_hot_posts")
+    @patch("src.analysis.chart.ChartGenerator.generate_chart")
+    def test_analyze_stock_returns_analysis_sources_provenance(self, mock_chart, mock_reddit, mock_history):
+        """심층분석 결과는 어떤 입력 축을 사용했는지 provenance를 반환해야 한다."""
+        index = pd.date_range("2024-01-01", periods=70, freq="D")
+        mock_history.return_value = pd.DataFrame(
+            {
+                "Close": [100 + i for i in range(70)],
+                "Volume": [1000 + (i * 5) for i in range(70)],
+            },
+            index=index,
+        )
+        mock_reddit.return_value = []
+        mock_chart.return_value = b"fake_image_bytes"
+
+        mock_response = MagicMock()
+        mock_response.text = '{"signal": "BUY", "confidence": 0.8, "reason": "호전적"}'
+        self.model.generate_content.return_value = mock_response
+
+        result = self.analyst.analyze_stock("005930")
+
+        self.assertEqual(result["analysis_sources"], ["시장 컨텍스트", "기술 지표", "소셜 심리"])
+
+
 if __name__ == "__main__":
     unittest.main()

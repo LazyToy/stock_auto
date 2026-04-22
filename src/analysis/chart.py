@@ -3,6 +3,9 @@ import logging
 from functools import lru_cache
 from typing import Optional
 
+import matplotlib
+
+matplotlib.use("Agg", force=True)
 from matplotlib import font_manager
 import mplfinance as mpf
 import pandas as pd

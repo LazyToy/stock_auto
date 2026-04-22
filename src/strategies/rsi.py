@@ -89,13 +89,13 @@ class RSIStrategy(BaseStrategy):
             curr_rsi = signals['rsi'].iloc[i]
             prev_rsi = signals['rsi'].iloc[i-1]
             
-            # 과매도 구간에서 상향 돌파 → 매수
-            if prev_rsi <= self.oversold and curr_rsi > self.oversold:
+            # 과매도 구간 또는 과매도 탈출 → 매수
+            if curr_rsi <= self.oversold or (prev_rsi <= self.oversold and curr_rsi > self.oversold):
                 signals.loc[signals.index[i], 'signal'] = 1
                 signals.loc[signals.index[i], 'position'] = 1
             
-            # 과매수 구간에서 하향 돌파 → 매도
-            elif prev_rsi >= self.overbought and curr_rsi < self.overbought:
+            # 과매수 구간 또는 과매수 이탈 → 매도
+            elif curr_rsi >= self.overbought or (prev_rsi >= self.overbought and curr_rsi < self.overbought):
                 signals.loc[signals.index[i], 'signal'] = -1
                 signals.loc[signals.index[i], 'position'] = 0
             

@@ -1,9 +1,18 @@
-import praw
 import logging
+from types import SimpleNamespace
 from typing import List, Dict, Any
 from src.config import Config
 
 logger = logging.getLogger("SocialScraper")
+
+try:
+    import praw
+except ImportError:  # pragma: no cover - depends on the local runtime image
+    class _MissingPrawReddit:
+        def __init__(self, *args, **kwargs):
+            raise ImportError("praw is not installed")
+
+    praw = SimpleNamespace(Reddit=_MissingPrawReddit)
 
 class RedditScraper:
     """Reddit 데이터 수집 및 감성 분석기"""
