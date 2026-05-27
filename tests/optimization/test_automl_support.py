@@ -3,6 +3,9 @@ from pathlib import Path
 import pandas as pd
 
 from src.optimization.automl_support import (
+    build_fitness_chart_data,
+    build_multi_symbol_validation_report,
+    summarize_validation_results,
     configure_yfinance_cache,
     download_automl_price_history,
     extract_fitness_history,
@@ -109,3 +112,95 @@ def test_extract_fitness_history_falls_back_to_best_fitness_when_needed():
     history = extract_fitness_history(None, fallback_fitness=1.23)
 
     assert history == [1.23]
+
+
+def test_summarize_validation_results_aggregates_multiple_symbols():
+    summary = summarize_validation_results(
+        [
+            {"symbol": "AAPL", "validation": {"test": {"fitness": 0.5}}},
+            {"symbol": "MSFT", "validation": {"aggregate": {"average_test_fitness": 0.7}}},
+            {"symbol": "EMPTY", "validation": {}},
+        ]
+    )
+
+    assert summary["symbol_count"] == 2
+    assert summary["average_test_fitness"] == 0.6
+    assert summary["best_symbol"] == "MSFT"
+
+
+def test_automl_support_exports_multi_symbol_validation_report_helper():
+    report = build_multi_symbol_validation_report(
+        [
+            {
+                "symbol": "AAPL",
+                "strategy_type": "MA_CROSSOVER",
+                "validation": {
+                    "test": {"fitness": 0.5},
+                    "overfit_guard": {"passes": True},
+                },
+            }
+        ]
+    )
+
+    assert report["best_usable_symbol"] == "AAPL"
+
+
+def test_build_fitness_chart_data_adds_train_test_validation_lines():
+    chart_df = build_fitness_chart_data(
+        history=[1.0, 1.2, 1.4],
+        validation={
+            "method": "train_test",
+            "train": {"fitness": 1.1},
+            "test": {"fitness": 0.8},
+        },
+    )
+
+    assert set(chart_df["Series"]) == {
+        "Evolution best",
+        "Validation train",
+        "Validation test",
+    }
+    assert chart_df[chart_df["Series"] == "Validation test"]["Fitness"].tolist() == [
+        0.8,
+        0.8,
+        0.8,
+    ]
+
+
+def test_build_fitness_chart_data_uses_generation_validation_curve_when_available():
+    chart_df = build_fitness_chart_data(
+        history=[1.0, 1.2],
+        validation={
+            "method": "train_test",
+            "test": {"fitness": 0.9},
+            "generation_history": [
+                {"generation": 0, "train_fitness": 0.7, "test_fitness": 0.4},
+                {"generation": 1, "train_fitness": 1.0, "test_fitness": 0.8},
+            ],
+        },
+    )
+
+    assert chart_df[chart_df["Series"] == "Validation test"]["Fitness"].tolist() == [
+        0.4,
+        0.8,
+    ]
+    assert chart_df[chart_df["Series"] == "Validation train"]["Fitness"].tolist() == [
+        0.7,
+        1.0,
+    ]
+
+
+def test_build_fitness_chart_data_adds_walk_forward_average_line():
+    chart_df = build_fitness_chart_data(
+        history=[1.0, 1.2],
+        validation={
+            "method": "walk_forward",
+            "aggregate": {"average_test_fitness": 0.9},
+        },
+    )
+
+    assert set(chart_df["Series"]) == {"Evolution best", "Walk-forward test avg"}
+    assert chart_df[chart_df["Series"] == "Walk-forward test avg"]["Fitness"].tolist() == [
+        0.9,
+        0.9,
+    ]

@@ -2,7 +2,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 from dashboard.label_utils import localize_signal_terms, normalize_signal, signal_to_korean
-from dashboard.symbol_utils import build_chart_title, build_symbol_label, format_symbol_label, normalize_symbol_code
+from dashboard.symbol_utils import (
+    build_chart_title,
+    build_symbol_candidates,
+    build_symbol_label,
+    format_symbol_label,
+    normalize_symbol_code,
+)
 
 
 def test_dashboard_uses_korean_labels_for_deep_analysis_and_agent_debate():
@@ -42,10 +48,11 @@ def test_localize_signal_terms_rewrites_english_decision_words():
     assert "HOLD" not in localized
 
 
-def test_dashboard_uses_streamlit_legacy_image_width_arg():
+def test_dashboard_uses_streamlit_image_compat_helper():
     text = Path("dashboard/app.py").read_text(encoding="utf-8")
 
-    assert "st.image(chart_buf, use_column_width=True)" in text
+    assert "from dashboard.streamlit_compat import image_full_width" in text
+    assert "image_full_width(st, chart_buf)" in text
 
 
 def test_symbol_label_formats_known_symbols():
@@ -53,6 +60,10 @@ def test_symbol_label_formats_known_symbols():
     assert normalize_symbol_code("aapl") == "AAPL"
     assert format_symbol_label("005930", "삼성전자") == "005930 (삼성전자)"
     assert format_symbol_label("AAPL", "Apple") == "AAPL (Apple)"
+
+
+def test_symbol_candidates_include_kr_suffixes_for_alphanumeric_krx_etfs():
+    assert build_symbol_candidates("0183J0") == ["0183J0.KS", "0183J0.KQ", "0183J0"]
 
 
 @patch("yfinance.Ticker")

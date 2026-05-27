@@ -109,6 +109,56 @@ notifications:
     backup_count: 5
 
 # =============================================================================
+# AutoML 설정
+# =============================================================================
+automl:
+  enabled: false
+  mode: "advisory"  # advisory, score_bonus; 주문 실행에는 직접 연결하지 않음
+  params_path: "data/automl_params"
+  min_fitness: 0.0
+  max_bonus: 0.0
+
+# =============================================================================
+# Smart Money 설정
+# =============================================================================
+smart_money:
+  enabled: false
+  mode: "advisory"  # advisory, filter; execute는 아직 주문 실행에 연결하지 않음
+  buy_score_bonus: 0.0
+  signal:
+    buy_threshold: 0.50
+    sell_threshold: -0.50
+    min_confidence: 0.55
+    min_confirming_timeframes: 2
+    weights:
+      daily: 0.40
+      hourly: 0.35
+      minute_5: 0.25
+    stale_pattern_penalty_per_bar: 0.01
+    max_patterns_per_type: 5
+    conflict_penalty: 0.20
+    insufficient_data_penalty: 0.15
+    invalidation_proximity_penalty: 0.05
+  patterns:
+    swing_left: 2
+    swing_right: 2
+    fvg_min_gap_pct: 0.001
+    order_block_lookback: 10
+    liquidity_sweep_tolerance_pct: 0.001
+    displacement_atr_multiplier: 0.0
+    atr_period: 14
+  alerts:
+    enabled: false
+    provider: "kakao"
+    cooldown_minutes: 30
+    min_confidence: 0.60
+    notify_on:
+      - "BUY"
+      - "SELL"
+    repeat_on_confidence_jump: true
+    confidence_jump_threshold: 0.15
+
+# =============================================================================
 # 백테스팅 설정
 # =============================================================================
 backtest:

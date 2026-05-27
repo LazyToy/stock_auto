@@ -13,6 +13,17 @@ from dotenv import load_dotenv
 # .env 파일 로드
 load_dotenv()
 
+
+def _get_int_env(name: str, default: int) -> int:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    try:
+        return int(raw_value)
+    except ValueError:
+        logging.getLogger(__name__).warning("%s 값이 정수가 아니어서 기본값 %s를 사용합니다.", name, default)
+        return default
+
 class Config:
     """설정 관리 클래스"""
     
@@ -54,6 +65,11 @@ class Config:
     REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID", "")
     REDDIT_CLIENT_SECRET = os.getenv("REDDIT_CLIENT_SECRET", "")
     REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT", "stock_auto_bot/1.0")
+    REDDIT_SUBREDDIT = os.getenv("REDDIT_SUBREDDIT", "stocks")
+    REDDIT_POST_LIMIT = _get_int_env("REDDIT_POST_LIMIT", 5)
+    REDDIT_SEARCH_SORT = os.getenv("REDDIT_SEARCH_SORT", "relevance")
+    REDDIT_SEARCH_TIME_FILTER = os.getenv("REDDIT_SEARCH_TIME_FILTER", "month")
+    DEEP_ANALYSIS_NEWS_LIMIT = _get_int_env("DEEP_ANALYSIS_NEWS_LIMIT", 3)
 
     
     @classmethod

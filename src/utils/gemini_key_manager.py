@@ -111,7 +111,11 @@ class GeminiKeyManager:
             return None
         return self._keys[self._current_index % len(self._keys)]
 
-    def call_with_fallback(self, api_func: Callable[[str], T]) -> T:
+    def call_with_fallback(
+        self,
+        api_func: Callable[[str], T],
+        retry_on: Optional[Callable[[Exception], bool]] = None,
+    ) -> T:
         """API 함수를 실행하되, ResourceExhausted 발생 시 다음 키로 자동 전환.
 
         Args:
@@ -136,6 +140,7 @@ class GeminiKeyManager:
             raise GeminiKeyExhaustedError("사용 가능한 Gemini API 키가 없습니다.")
 
         n = len(self._keys)
+        should_retry = retry_on or _is_quota_error
 
         for attempt in range(n):
             # sticky current 전략: 마지막 성공 인덱스부터 순환
@@ -151,7 +156,7 @@ class GeminiKeyManager:
                 return result
 
             except Exception as exc:
-                if _is_quota_error(exc):
+                if should_retry(exc):
                     logger.warning(
                         f"키[{idx}] 할당량 초과: {exc}. "
                         f"다음 키로 전환 ({attempt + 1}/{n})"

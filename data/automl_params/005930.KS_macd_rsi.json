@@ -1,0 +1,441 @@
+{
+  "symbol": "005930",
+  "strategy_type": "MACD_RSI",
+  "strategy_display_name": "MACD+RSI",
+  "best_params": [
+    7,
+    23,
+    10,
+    27,
+    23,
+    62
+  ],
+  "best_parameters": {
+    "Fast EMA": 7,
+    "Slow EMA": 23,
+    "Signal": 10,
+    "RSI Window": 27,
+    "RSI Lower": 23,
+    "RSI Upper": 62
+  },
+  "parameter_labels": [
+    "Fast EMA",
+    "Slow EMA",
+    "Signal",
+    "RSI Window",
+    "RSI Lower",
+    "RSI Upper"
+  ],
+  "best_fitness": -4.918911880739118,
+  "fitness_metric": "composite",
+  "population_size": 50,
+  "generations": 20,
+  "mutation_rate": 0.2,
+  "history": [
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118,
+    -4.918911880739118
+  ],
+  "use_regime_filter": true,
+  "regime_config": {
+    "short_window": 20,
+    "long_window": 60,
+    "adx_trend_threshold": 20.0,
+    "min_trend_gap": 0.01,
+    "high_volatility_threshold": 0.45,
+    "min_relative_volume": 0.5
+  },
+  "risk_config": {
+    "atr_stop_multiplier": null,
+    "trailing_stop_pct": null,
+    "max_holding_days": null,
+    "cooldown_days": 0
+  },
+  "validation": {
+    "method": "train_test",
+    "train_size": 170,
+    "test_size": 73,
+    "train": {
+      "strategy_type": "MACD_RSI",
+      "params": [
+        7.0,
+        23.0,
+        10.0,
+        27.0,
+        23.0,
+        62.0
+      ],
+      "fitness": -2.1860307307580236,
+      "metrics": {
+        "sharpe": 0.0,
+        "total_return": 0.0,
+        "annual_return": 0.0,
+        "benchmark_return": 2.1860307307580236,
+        "excess_return": -2.1860307307580236,
+        "max_drawdown": 0.0,
+        "profit_factor": 0.0,
+        "trade_count": 0.0,
+        "turnover": 0.0,
+        "signal_exit_count": 0.0,
+        "atr_stop_exit_count": 0.0,
+        "trailing_stop_exit_count": 0.0,
+        "max_holding_exit_count": 0.0,
+        "regime_blocked_buy_count": 0.0
+      }
+    },
+    "test": {
+      "strategy_type": "MACD_RSI",
+      "params": [
+        7.0,
+        23.0,
+        10.0,
+        27.0,
+        23.0,
+        62.0
+      ],
+      "fitness": -0.9720583781962526,
+      "metrics": {
+        "sharpe": 0.0,
+        "total_return": 0.0,
+        "annual_return": 0.0,
+        "benchmark_return": 0.9720583781962526,
+        "excess_return": -0.9720583781962526,
+        "max_drawdown": 0.0,
+        "profit_factor": 0.0,
+        "trade_count": 0.0,
+        "turnover": 0.0,
+        "signal_exit_count": 0.0,
+        "atr_stop_exit_count": 0.0,
+        "trailing_stop_exit_count": 0.0,
+        "max_holding_exit_count": 0.0,
+        "regime_blocked_buy_count": 0.0
+      }
+    },
+    "fitness_gap": -1.213972352561771,
+    "overfit_guard": {
+      "passes": false,
+      "failed_checks": [
+        "min_trades"
+      ],
+      "min_trades": 1,
+      "max_fitness_gap": 2.0,
+      "deflated_sharpe": 0.0
+    },
+    "generation_history": [
+      {
+        "generation": 0,
+        "fitness": -4.918911880739118,
+        "params": [
+          7,
+          23,
+          10,
+          27,
+          23,
+          62
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 1,
+        "fitness": -4.918911880739118,
+        "params": [
+          6,
+          24,
+          11,
+          13,
+          29,
+          74
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 2,
+        "fitness": -4.918911880739118,
+        "params": [
+          17,
+          49,
+          13,
+          13,
+          29,
+          74
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 3,
+        "fitness": -4.918911880739118,
+        "params": [
+          17,
+          49,
+          13,
+          18,
+          35,
+          74
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 4,
+        "fitness": -4.918911880739118,
+        "params": [
+          7,
+          51,
+          9,
+          16,
+          29,
+          63
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 5,
+        "fitness": -4.918911880739118,
+        "params": [
+          6,
+          30,
+          13,
+          19,
+          22,
+          65
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 6,
+        "fitness": -4.918911880739118,
+        "params": [
+          6,
+          30,
+          13,
+          19,
+          22,
+          65
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 7,
+        "fitness": -4.918911880739118,
+        "params": [
+          16,
+          53,
+          6,
+          18,
+          35,
+          74
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 8,
+        "fitness": -4.918911880739118,
+        "params": [
+          19,
+          43,
+          6,
+          30,
+          26,
+          75
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 9,
+        "fitness": -4.918911880739118,
+        "params": [
+          11,
+          48,
+          6,
+          18,
+          32,
+          69
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 10,
+        "fitness": -4.918911880739118,
+        "params": [
+          18,
+          37,
+          6,
+          18,
+          32,
+          80
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 11,
+        "fitness": -4.918911880739118,
+        "params": [
+          6,
+          55,
+          11,
+          18,
+          35,
+          77
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 12,
+        "fitness": -4.918911880739118,
+        "params": [
+          10,
+          43,
+          11,
+          18,
+          35,
+          74
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 13,
+        "fitness": -4.918911880739118,
+        "params": [
+          10,
+          43,
+          11,
+          18,
+          35,
+          65
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 14,
+        "fitness": -4.918911880739118,
+        "params": [
+          19,
+          43,
+          6,
+          18,
+          26,
+          65
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 15,
+        "fitness": -4.918911880739118,
+        "params": [
+          14,
+          26,
+          15,
+          24,
+          29,
+          73
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 16,
+        "fitness": -4.918911880739118,
+        "params": [
+          8,
+          48,
+          9,
+          18,
+          32,
+          69
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 17,
+        "fitness": -4.918911880739118,
+        "params": [
+          18,
+          48,
+          11,
+          18,
+          32,
+          74
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 18,
+        "fitness": -4.918911880739118,
+        "params": [
+          14,
+          48,
+          6,
+          18,
+          32,
+          69
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 19,
+        "fitness": -4.918911880739118,
+        "params": [
+          18,
+          48,
+          11,
+          18,
+          32,
+          74
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 20,
+        "fitness": -4.918911880739118,
+        "params": [
+          10,
+          43,
+          9,
+          18,
+          29,
+          65
+        ],
+        "train_fitness": -2.1860307307580236,
+        "test_fitness": -0.9720583781962526
+      }
+    ]
+  },
+  "resolved_symbol": "005930.KS",
+  "saved_at": "2026-05-27T14:28:22"
+}

@@ -14,6 +14,9 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import logging
 
+from src.analysis.market_interest import MarketInterestCandidate, MarketInterestCandidateProvider
+from src.analysis.supply_flow import SupplyFlowProvider
+
 # yfinance import
 try:
     import yfinance as yf
@@ -37,6 +40,8 @@ class GrowthStock:
     financial_health: str         # 재무 건전성 (Excellent, Good, Fair, Poor)
     reason: str                   # 추천 사유
     market_cap: str               # 시가총액 구분
+    current_price: Optional[float] = None   # 현재가
+    price_currency: str = ""                # 가격 통화
     revenue_growth: Optional[float] = None  # 매출 성장률 (%)
     profit_margin: Optional[float] = None   # 영업이익률 (%)
     debt_to_equity: Optional[float] = None  # 부채비율 (%)
@@ -44,6 +49,29 @@ class GrowthStock:
     pe_ratio: Optional[float] = None        # PER
     news_summary: str = ""                  # 최신 뉴스 요약 (Tavily)
     news_sentiment: str = ""                # 뉴스 감성 (Positive/Neutral/Negative)
+    market_interest_score: Optional[float] = None  # 시장 관심도 점수
+    market_interest_reason: str = ""              # 시장 관심도 근거
+    momentum_20d: Optional[float] = None           # 20일 모멘텀
+    volume_ratio_20d: Optional[float] = None       # 최근 5일/이전 20일 거래량 비율
+    financial_growth_score: float = 0.0            # 재무 성장성 점수
+    financial_health_score: float = 0.0            # 수익성/건전성 점수
+    financial_persistence_score: float = 0.0       # 3년 재무 성장 지속성 점수
+    valuation_score: float = 0.0                   # 밸류에이션 점수
+    risk_penalty: float = 0.0                      # 리스크/불확실성 감점
+    data_confidence: float = 1.0                   # 재무 데이터 신뢰도 (0~1)
+    revenue_cagr_3y: Optional[float] = None         # 3년 매출 CAGR
+    operating_income_trend: Optional[float] = None  # 영업이익 개선폭
+    sector_rank: Optional[int] = None               # 섹터 내 시장 관심도 순위
+    sector_count: int = 0                           # 섹터 후보 수
+    sector_percentile: Optional[float] = None       # 섹터 내 상대 백분위
+    supply_flow_score: Optional[float] = None        # 외국인/기관 수급 점수
+    supply_flow_source: str = ""                     # 수급 데이터 출처
+    supply_flow_unit: str = ""                       # 수급 값 단위
+    latest_foreign_flow: Optional[int] = None        # 최근 외국인 순매수
+    latest_institution_flow: Optional[int] = None    # 최근 기관 순매수
+    smart_money_5d_sum: Optional[int] = None         # 최근 5일 외국인+기관 누적
+    supply_flow_positive_days_5d: Optional[int] = None  # 최근 5일 수급 양수 일수
+    supply_flow_reversal: str = ""                   # 수급 전환 유형
 
 
 class HybridGrowthStockFinder:
@@ -149,34 +177,75 @@ class HybridGrowthStockFinder:
     
     TAVILY_API_URL = "https://api.tavily.com/search"
     
-    def __init__(self, tavily_api_key: str = None):
+    def __init__(self, tavily_api_key: str = None, candidate_provider=None, flow_provider=None):
         """초기화
         
         Args:
             tavily_api_key: Tavily API 키 (없으면 환경변수 TAVILY_API_KEY 사용)
+            candidate_provider: 시장 관심도 후보 생성기. 테스트/오프라인 실행 시 주입 가능.
+            flow_provider: 외국인/기관 수급 분석기. 테스트/오프라인 실행 시 주입 가능.
         """
         self.tavily_api_key = tavily_api_key or os.getenv("TAVILY_API_KEY")
+        self.candidate_provider = candidate_provider
+        self.flow_provider = flow_provider
         self.last_update = None
         self.cached_results: List[GrowthStock] = []
+        self.last_candidate_source = "static"
+        self.last_market_candidates: List[MarketInterestCandidate] = []
         
         if not YFINANCE_AVAILABLE:
             logger.warning("yfinance 패키지가 설치되지 않았습니다. pip install yfinance")
     
-    def search_growth_stocks(self, market: str = "KR", top_n: int = 5) -> List[GrowthStock]:
+    def search_growth_stocks(
+        self,
+        market: str = "KR",
+        top_n: int = 5,
+        candidate_mode: str = "market",
+        candidate_limit: int = 80,
+        prefilter_limit: int = 200,
+        interest_window_days: int = 20,
+    ) -> List[GrowthStock]:
         """성장 가능성 주 검색 (하이브리드)
         
         Args:
             market: 시장 구분 (KR/US)
             top_n: 반환할 종목 수
+            candidate_mode: "market"이면 실시간 시장 관심도 기반 후보,
+                            "static"이면 기존 고정 후보군 사용
+            candidate_limit: 재무 스크리닝으로 넘길 시장 관심도 상위 후보 수
+            prefilter_limit: 단기 일봉 조회 전 유동성/당일 관심도로 압축할 후보 수
+            interest_window_days: 시장 관심도 계산에 사용할 누적 관심 기간
             
         Returns:
             Top N 성장 가능성 종목 리스트
         """
         self.last_update = datetime.now()
         
-        # 1단계: yfinance로 재무 데이터 스크리닝
-        candidates = self.KR_CANDIDATE_SYMBOLS if market == "KR" else self.US_CANDIDATE_SYMBOLS
+        # 1단계: 실시간 시장 스캔으로 후보를 만들고, 상위 후보만 재무 스크리닝
+        market_candidates: List[MarketInterestCandidate] = []
+        if candidate_mode == "market":
+            provider = self.candidate_provider or MarketInterestCandidateProvider()
+            market_candidates = provider.build_candidates(
+                market,
+                limit=candidate_limit,
+                prefilter_limit=prefilter_limit,
+                interest_window_days=interest_window_days,
+            )
+            market_candidates = market_candidates[:candidate_limit]
+            candidates = [candidate.symbol for candidate in market_candidates]
+            self.last_candidate_source = "market"
+            self.last_market_candidates = market_candidates
+        else:
+            candidates = self.KR_CANDIDATE_SYMBOLS if market == "KR" else self.US_CANDIDATE_SYMBOLS
+            self.last_candidate_source = "static"
+            self.last_market_candidates = []
+
         screened_stocks = self._screen_with_yfinance(candidates)
+        if market_candidates and screened_stocks:
+            self._apply_market_interest(screened_stocks, market_candidates)
+
+        if market.upper() == "KR" and screened_stocks:
+            self._apply_supply_flow(screened_stocks, top_n=top_n)
         
         # 2단계: Tavily로 웹 검색 보완 (상위 종목만)
         if self.tavily_api_key and screened_stocks:
@@ -187,6 +256,71 @@ class HybridGrowthStockFinder:
         self.cached_results = screened_stocks[:top_n]
         
         return self.cached_results
+
+    def _apply_market_interest(
+        self,
+        stocks: List[GrowthStock],
+        candidates: List[MarketInterestCandidate],
+    ) -> None:
+        """시장 관심도 점수를 재무 스크리닝 결과에 병합한다."""
+        by_key = {
+            self._normalize_symbol_key(candidate.symbol): candidate
+            for candidate in candidates
+        }
+        for stock in stocks:
+            candidate = by_key.get(self._normalize_symbol_key(stock.symbol))
+            if candidate is None:
+                continue
+            stock.market_interest_score = candidate.interest_score
+            stock.market_interest_reason = candidate.reason
+            stock.current_price = candidate.current_price
+            stock.price_currency = candidate.price_currency
+            stock.momentum_20d = candidate.momentum_20d
+            stock.volume_ratio_20d = candidate.volume_ratio_20d
+            stock.sector_rank = candidate.sector_rank
+            stock.sector_count = candidate.sector_count
+            stock.sector_percentile = candidate.sector_percentile
+            stock.growth_score = min(
+                10.0,
+                stock.growth_score + min(1.0, candidate.interest_score / 10.0),
+            )
+            stock.reason += f" | 시장 관심도 {candidate.interest_score:.1f}"
+            if candidate.reason:
+                stock.reason += f" ({candidate.reason})"
+
+    def _apply_supply_flow(self, stocks: List[GrowthStock], *, top_n: int) -> None:
+        """외국인/기관 수급 점수를 상위 KR 후보에 병합한다."""
+        provider = self.flow_provider or SupplyFlowProvider()
+        flow_limit = min(len(stocks), max(20, top_n * 4))
+        targets = sorted(stocks, key=lambda item: item.growth_score, reverse=True)[:flow_limit]
+
+        for stock in targets:
+            try:
+                analysis = provider.analyze(stock.symbol)
+            except Exception as exc:
+                logger.debug("supply flow analysis failed for %s: %s", stock.symbol, exc)
+                continue
+
+            if analysis.source == "none":
+                continue
+
+            stock.supply_flow_score = analysis.score
+            stock.supply_flow_source = analysis.source
+            stock.supply_flow_unit = analysis.flow_unit
+            stock.latest_foreign_flow = analysis.latest_foreign
+            stock.latest_institution_flow = analysis.latest_institution
+            stock.smart_money_5d_sum = analysis.smart_money_5d_sum
+            stock.supply_flow_positive_days_5d = analysis.positive_days_5d
+            stock.supply_flow_reversal = ", ".join(analysis.reversal_types)
+            stock.growth_score = round(
+                min(10.0, max(1.0, stock.growth_score + analysis.score)),
+                2,
+            )
+            stock.reason += f" | 수급 {analysis.score:.1f} ({analysis.reason})"
+
+    @staticmethod
+    def _normalize_symbol_key(symbol: str) -> str:
+        return str(symbol).replace(".KQ", "").replace(".KS", "").upper()
     
     def _screen_with_yfinance(self, symbols: List[str]) -> List[GrowthStock]:
         """yfinance로 재무 데이터 기반 스크리닝"""
@@ -218,6 +352,12 @@ class HybridGrowthStockFinder:
                 current_ratio = info.get('currentRatio', None)
                 pe_ratio = info.get('trailingPE', None)
                 market_cap = info.get('marketCap', 0)
+                current_price = (
+                    info.get('currentPrice')
+                    or info.get('regularMarketPrice')
+                    or info.get('previousClose')
+                )
+                price_currency = "KRW" if is_kr else (info.get("currency") or "USD")
 
                 # [이슈 #1 최종 수정] 한국 종목은 KR_SECTOR_MAP을 항상 우선 사용
                 # yfinance가 영문 섹터(Healthcare, Technology 등)를 반환해도 무시하고 한국어로 덮어씀
@@ -233,6 +373,7 @@ class HybridGrowthStockFinder:
                     financials_cache = stock.financials
                 except Exception:
                     pass
+                persistence = self._calculate_financial_persistence(financials_cache)
 
                 # revenue_growth fallback: financials 테이블에서 직접 계산
                 if revenue_growth is None and financials_cache is not None and not financials_cache.empty:
@@ -293,9 +434,15 @@ class HybridGrowthStockFinder:
                     continue
 
                 # 성장 점수 계산
-                growth_score = self._calculate_growth_score(
-                    revenue_growth, profit_margin, debt_to_equity, current_ratio, pe_ratio
+                score_breakdown = self._calculate_score_breakdown(
+                    revenue_growth,
+                    profit_margin,
+                    debt_to_equity,
+                    current_ratio,
+                    pe_ratio,
+                    financial_persistence_score=persistence["financial_persistence_score"],
                 )
+                growth_score = score_breakdown["total_score"]
 
                 # 재무 건전성 평가
                 financial_health = self._evaluate_financial_health(debt_to_equity, current_ratio, profit_margin)
@@ -311,11 +458,21 @@ class HybridGrowthStockFinder:
                     financial_health=financial_health,
                     reason=f"매출 성장률 {revenue_growth:.1f}%" if revenue_growth else "성장 잠재력 보유",
                     market_cap=market_cap_label,
+                    current_price=current_price,
+                    price_currency=price_currency,
                     revenue_growth=revenue_growth,
                     profit_margin=profit_margin,
                     debt_to_equity=debt_to_equity,
                     current_ratio=current_ratio,
                     pe_ratio=pe_ratio,
+                    financial_growth_score=score_breakdown["financial_growth_score"],
+                    financial_health_score=score_breakdown["financial_health_score"],
+                    financial_persistence_score=score_breakdown["financial_persistence_score"],
+                    valuation_score=score_breakdown["valuation_score"],
+                    risk_penalty=score_breakdown["risk_penalty"],
+                    data_confidence=score_breakdown["data_confidence"],
+                    revenue_cagr_3y=persistence["revenue_cagr_3y"],
+                    operating_income_trend=persistence["operating_income_trend"],
                 ))
 
             except Exception as e:
@@ -358,41 +515,138 @@ class HybridGrowthStockFinder:
     
     def _calculate_growth_score(self, revenue_growth, profit_margin, debt_to_equity, current_ratio, pe_ratio) -> float:
         """성장 점수 계산 (1-10)"""
+        return self._calculate_score_breakdown(
+            revenue_growth, profit_margin, debt_to_equity, current_ratio, pe_ratio
+        )["total_score"]
+
+    def _calculate_score_breakdown(
+        self,
+        revenue_growth,
+        profit_margin,
+        debt_to_equity,
+        current_ratio,
+        pe_ratio,
+        financial_persistence_score: float = 0.0,
+    ) -> Dict[str, float]:
+        """성장 점수 구성 요소와 데이터 신뢰도를 계산한다."""
         score = 5.0  # 기본 점수
+        financial_growth_score = 0.0
+        financial_health_score = 0.0
+        valuation_score = 0.0
+
+        observed = sum(
+            value is not None
+            for value in (revenue_growth, profit_margin, debt_to_equity, current_ratio, pe_ratio)
+        )
+        data_confidence = observed / 5.0
+        risk_penalty = 0.0 if data_confidence >= 0.8 else -round((0.8 - data_confidence) * 2.0, 2)
         
         # 매출 성장률 (최대 +2점)
         if revenue_growth:
             if revenue_growth > 30:
-                score += 2.0
+                financial_growth_score += 2.0
             elif revenue_growth > 20:
-                score += 1.5
+                financial_growth_score += 1.5
             elif revenue_growth > 10:
-                score += 1.0
+                financial_growth_score += 1.0
         
         # 이익률 (최대 +1.5점)
         if profit_margin:
             if profit_margin > 15:
-                score += 1.5
+                financial_health_score += 1.5
             elif profit_margin > 10:
-                score += 1.0
+                financial_health_score += 1.0
             elif profit_margin > 5:
-                score += 0.5
+                financial_health_score += 0.5
         
         # 부채비율 (최대 +1점)
         if debt_to_equity:
             if debt_to_equity < 50:
-                score += 1.0
+                financial_health_score += 1.0
             elif debt_to_equity < 100:
-                score += 0.5
+                financial_health_score += 0.5
         
         # 유동비율 (최대 +0.5점)
         if current_ratio:
             if current_ratio > 2:
-                score += 0.5
+                financial_health_score += 0.5
             elif current_ratio > 1.5:
-                score += 0.25
+                financial_health_score += 0.25
+
+        if pe_ratio is not None:
+            if 0 < pe_ratio < 20:
+                valuation_score += 0.4
+            elif pe_ratio > 80:
+                valuation_score -= 0.4
         
-        return min(10.0, max(1.0, score))
+        total_score = min(
+            10.0,
+            max(
+                1.0,
+                score
+                + financial_growth_score
+                + financial_health_score
+                + financial_persistence_score
+                + valuation_score
+                + risk_penalty,
+            ),
+        )
+        return {
+            "total_score": round(total_score, 2),
+            "financial_growth_score": round(financial_growth_score, 2),
+            "financial_health_score": round(financial_health_score, 2),
+            "financial_persistence_score": round(float(financial_persistence_score or 0.0), 2),
+            "valuation_score": round(valuation_score, 2),
+            "risk_penalty": round(risk_penalty, 2),
+            "data_confidence": round(data_confidence, 2),
+        }
+
+    def _calculate_financial_persistence(self, financials) -> Dict[str, Optional[float] | float]:
+        """3년 매출 CAGR과 영업이익 개선으로 재무 성장 지속성을 계산한다."""
+        result: Dict[str, Optional[float] | float] = {
+            "revenue_cagr_3y": None,
+            "operating_income_trend": None,
+            "financial_persistence_score": 0.0,
+        }
+        if financials is None or getattr(financials, "empty", True):
+            return result
+
+        score = 0.0
+        try:
+            if "Total Revenue" in financials.index:
+                revenues = financials.loc["Total Revenue"].dropna().astype(float)
+                if len(revenues) >= 2:
+                    latest = float(revenues.iloc[0])
+                    oldest_index = min(3, len(revenues) - 1)
+                    oldest = float(revenues.iloc[oldest_index])
+                    years = max(1, oldest_index)
+                    if latest > 0 and oldest > 0:
+                        revenue_cagr = ((latest / oldest) ** (1 / years) - 1) * 100
+                        result["revenue_cagr_3y"] = round(revenue_cagr, 2)
+                        if revenue_cagr > 25:
+                            score += 1.5
+                        elif revenue_cagr > 15:
+                            score += 1.0
+                        elif revenue_cagr > 8:
+                            score += 0.5
+
+            if "Operating Income" in financials.index:
+                operating_income = financials.loc["Operating Income"].dropna().astype(float)
+                if len(operating_income) >= 2:
+                    latest_income = float(operating_income.iloc[0])
+                    oldest_income = float(operating_income.iloc[min(3, len(operating_income) - 1)])
+                    trend = latest_income - oldest_income
+                    result["operating_income_trend"] = round(trend, 2)
+                    if trend > 0 and latest_income > 0:
+                        score += 1.0
+                    elif trend > 0:
+                        score += 0.5
+        except Exception as exc:
+            logger.debug("financial persistence calculation failed: %s", exc)
+            return result
+
+        result["financial_persistence_score"] = round(min(2.5, score), 2)
+        return result
     
     def _evaluate_financial_health(self, debt_to_equity, current_ratio, profit_margin) -> str:
         """재무 건전성 평가"""
@@ -529,7 +783,15 @@ class HybridGrowthStockFinder:
             "total_stocks": len(self.cached_results),
             "last_update": self.last_update.isoformat() if self.last_update else None,
             "avg_growth_score": sum(s.growth_score for s in self.cached_results) / len(self.cached_results),
+            "avg_data_confidence": sum(
+                getattr(s, "data_confidence", 0.0) for s in self.cached_results
+            ) / len(self.cached_results),
+            "avg_supply_flow_score": sum(
+                getattr(s, "supply_flow_score", 0.0) or 0.0 for s in self.cached_results
+            ) / len(self.cached_results),
             "tavily_enabled": bool(self.tavily_api_key),
+            "candidate_source": self.last_candidate_source,
+            "market_candidate_count": len(self.last_market_candidates),
         }
     
     def to_dataframe_dict(self) -> List[Dict[str, Any]]:
@@ -540,6 +802,30 @@ class HybridGrowthStockFinder:
                 "종목명": s.name,
                 "섹터": s.sector,
                 "성장점수": s.growth_score,
+                "현재가": self._format_price(
+                    getattr(s, "current_price", None),
+                    getattr(s, "price_currency", ""),
+                ),
+                "시장관심도": getattr(s, "market_interest_score", None),
+                "수급점수": getattr(s, "supply_flow_score", None),
+                "수급출처": getattr(s, "supply_flow_source", ""),
+                "수급단위": getattr(s, "supply_flow_unit", ""),
+                "최근외국인순매수": getattr(s, "latest_foreign_flow", None),
+                "최근기관순매수": getattr(s, "latest_institution_flow", None),
+                "5일스마트머니순매수": getattr(s, "smart_money_5d_sum", None),
+                "5일수급양수일": getattr(s, "supply_flow_positive_days_5d", None),
+                "수급전환": getattr(s, "supply_flow_reversal", ""),
+                "재무성장성": getattr(s, "financial_growth_score", 0.0),
+                "수익성/건전성": getattr(s, "financial_health_score", 0.0),
+                "3년지속성": getattr(s, "financial_persistence_score", 0.0),
+                "밸류에이션": getattr(s, "valuation_score", 0.0),
+                "리스크감점": getattr(s, "risk_penalty", 0.0),
+                "데이터신뢰도": getattr(s, "data_confidence", 0.0),
+                "3년매출CAGR(%)": getattr(s, "revenue_cagr_3y", None),
+                "영업이익개선": getattr(s, "operating_income_trend", None),
+                "섹터순위": getattr(s, "sector_rank", None),
+                "섹터후보수": getattr(s, "sector_count", 0),
+                "섹터백분위": getattr(s, "sector_percentile", None),
                 "재무건전성": s.financial_health,
                 "시가총액": s.market_cap,
                 "매출성장률(%)": s.revenue_growth,
@@ -547,11 +833,28 @@ class HybridGrowthStockFinder:
                 "부채비율(%)": s.debt_to_equity,
                 "유동비율": s.current_ratio,
                 "PER": s.pe_ratio,
+                "20일모멘텀(%)": getattr(s, "momentum_20d", None),
+                "거래량비율": getattr(s, "volume_ratio_20d", None),
                 "뉴스감성": s.news_sentiment,
                 "추천사유": s.reason,
             }
             for s in self.cached_results
         ]
+
+    @staticmethod
+    def _format_price(value, currency: str = "") -> str:
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return "N/A"
+        if number != number:
+            return "N/A"
+        currency = str(currency or "").upper()
+        if currency in {"KRW", "JPY"}:
+            return f"{number:,.0f} {currency}"
+        if currency:
+            return f"{number:,.2f} {currency}"
+        return f"{number:,.2f}"
 
 
 # 기존 호환성을 위한 alias

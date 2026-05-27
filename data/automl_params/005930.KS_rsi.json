@@ -1,0 +1,96 @@
+{
+  "symbol": "005930",
+  "strategy_type": "RSI",
+  "strategy_display_name": "RSI",
+  "best_params": [
+    23,
+    42,
+    88
+  ],
+  "best_parameters": {
+    "RSI Window": 23,
+    "RSI Lower": 42,
+    "RSI Upper": 88
+  },
+  "parameter_labels": [
+    "RSI Window",
+    "RSI Lower",
+    "RSI Upper"
+  ],
+  "best_fitness": 1.5325724311287363,
+  "fitness_metric": "composite",
+  "population_size": 50,
+  "generations": 20,
+  "mutation_rate": 0.2,
+  "history": [
+    1.194959633715478,
+    1.194959633715478,
+    1.194959633715478,
+    1.194959633715478,
+    1.194959633715478,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.5325724311287363,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2711858199771966,
+    1.2810054428131197,
+    1.2810054428131197,
+    1.2810054428131197
+  ],
+  "validation": {
+    "method": "train_test",
+    "train_size": 170,
+    "test_size": 73,
+    "train": {
+      "strategy_type": "RSI",
+      "params": [
+        23.0,
+        42.0,
+        88.0
+      ],
+      "fitness": 2.960722825997195,
+      "metrics": {
+        "sharpe": 3.974393659730492,
+        "total_return": 1.4663777100967206,
+        "annual_return": 2.8121561509427266,
+        "benchmark_return": 2.186030965729073,
+        "excess_return": -0.7196532556323523,
+        "max_drawdown": -0.14671467140341343,
+        "profit_factor": 2.3943414741943534,
+        "trade_count": 1.0,
+        "turnover": 0.0058823529411764705
+      }
+    },
+    "test": {
+      "strategy_type": "RSI",
+      "params": [
+        23.0,
+        42.0,
+        88.0
+      ],
+      "fitness": 4.1165719010492845,
+      "metrics": {
+        "sharpe": 4.390888276113713,
+        "total_return": 0.8934257641563343,
+        "annual_return": 8.058916619396454,
+        "benchmark_return": 0.9940749789097674,
+        "excess_return": -0.10064921475343303,
+        "max_drawdown": -0.08614864864864868,
+        "profit_factor": 2.9144375114421015,
+        "trade_count": 1.0,
+        "turnover": 0.0136986301369863
+      }
+    },
+    "fitness_gap": -1.1558490750520893
+  },
+  "resolved_symbol": "005930.KS",
+  "saved_at": "2026-05-27T10:29:11"
+}

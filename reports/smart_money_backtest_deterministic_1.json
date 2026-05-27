@@ -1,0 +1,55 @@
+{
+  "generated_at": "2024-01-02T09:30:00+00:00",
+  "market": "US",
+  "exchange": "NASD",
+  "period": "1y",
+  "summary": {
+    "total_symbols": 1,
+    "success_count": 1,
+    "failure_count": 0
+  },
+  "results": [
+    {
+      "symbol": "AAPL",
+      "status": "success",
+      "initial_capital": 10000000.0,
+      "final_equity": 10313718.9636,
+      "total_return": 0.03137189636000004,
+      "metrics": {
+        "total_trades": 1,
+        "win_rate": 1.0,
+        "average_return": 0.03302337982635942,
+        "max_drawdown": 0.007756742982021669,
+        "profit_factor": Infinity,
+        "signal_coverage": 0.13043478260869565,
+        "signal_counts": {
+          "BUY": 3,
+          "SELL": 0,
+          "HOLD": 20
+        },
+        "signal_ratios": {
+          "BUY": 0.13043478260869565,
+          "SELL": 0.0,
+          "HOLD": 0.8695652173913043
+        },
+        "exit_reason_counts": {
+          "END_OF_DATA": 1
+        }
+      },
+      "trades": [
+        {
+          "entry_time": "2024-01-02T11:15:00",
+          "exit_time": "2024-01-02T11:20:00",
+          "quantity": 79154,
+          "entry_price": 120.0,
+          "exit_price": 124.0,
+          "net_pnl": 313718.96360000037,
+          "return_pct": 0.03302337982635942,
+          "holding_bars": 1,
+          "exit_reason": "END_OF_DATA"
+        }
+      ],
+      "warnings": []
+    }
+  ]
+}

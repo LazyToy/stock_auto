@@ -1,0 +1,338 @@
+{
+  "symbol": "005930",
+  "strategy_type": "MA_CROSSOVER",
+  "strategy_display_name": "MA Crossover",
+  "best_params": [
+    30,
+    31
+  ],
+  "best_parameters": {
+    "Short Window": 30,
+    "Long Window": 31
+  },
+  "parameter_labels": [
+    "Short Window",
+    "Long Window"
+  ],
+  "best_fitness": 0.654450771738473,
+  "fitness_metric": "composite",
+  "population_size": 50,
+  "generations": 20,
+  "mutation_rate": 0.2,
+  "history": [
+    -1.3722600620875816,
+    0.466147996351621,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473,
+    0.654450771738473
+  ],
+  "use_regime_filter": true,
+  "regime_config": {
+    "short_window": 20,
+    "long_window": 60,
+    "adx_trend_threshold": 20.0,
+    "min_trend_gap": 0.01,
+    "high_volatility_threshold": 0.45,
+    "min_relative_volume": 0.5
+  },
+  "risk_config": {
+    "atr_stop_multiplier": null,
+    "trailing_stop_pct": null,
+    "max_holding_days": null,
+    "cooldown_days": 0
+  },
+  "validation": {
+    "method": "train_test",
+    "train_size": 170,
+    "test_size": 73,
+    "train": {
+      "strategy_type": "MA_CROSSOVER",
+      "params": [
+        30.0,
+        31.0
+      ],
+      "fitness": 2.4115145166547123,
+      "metrics": {
+        "sharpe": 3.6612794331973886,
+        "total_return": 1.231459862904528,
+        "annual_return": 2.2864879740540065,
+        "benchmark_return": 2.1860307307580236,
+        "excess_return": -0.9545708678534957,
+        "max_drawdown": -0.14671467140341365,
+        "profit_factor": 2.3905619372511984,
+        "trade_count": 3.0,
+        "turnover": 0.01764705882352941,
+        "signal_exit_count": 1.0,
+        "atr_stop_exit_count": 0.0,
+        "trailing_stop_exit_count": 0.0,
+        "max_holding_exit_count": 0.0,
+        "regime_blocked_buy_count": 2.0
+      }
+    },
+    "test": {
+      "strategy_type": "MA_CROSSOVER",
+      "params": [
+        30.0,
+        31.0
+      ],
+      "fitness": -0.9720583781962526,
+      "metrics": {
+        "sharpe": 0.0,
+        "total_return": 0.0,
+        "annual_return": 0.0,
+        "benchmark_return": 0.9720583781962526,
+        "excess_return": -0.9720583781962526,
+        "max_drawdown": 0.0,
+        "profit_factor": 0.0,
+        "trade_count": 0.0,
+        "turnover": 0.0,
+        "signal_exit_count": 0.0,
+        "atr_stop_exit_count": 0.0,
+        "trailing_stop_exit_count": 0.0,
+        "max_holding_exit_count": 0.0,
+        "regime_blocked_buy_count": 3.0
+      }
+    },
+    "fitness_gap": 3.383572894850965,
+    "overfit_guard": {
+      "passes": false,
+      "failed_checks": [
+        "min_trades",
+        "fitness_gap"
+      ],
+      "min_trades": 1,
+      "max_fitness_gap": 2.0,
+      "deflated_sharpe": -0.9153198582993471
+    },
+    "generation_history": [
+      {
+        "generation": 0,
+        "fitness": -1.3722600620875816,
+        "params": [
+          30,
+          33
+        ],
+        "train_fitness": 1.9439954625636133,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 1,
+        "fitness": 0.466147996351621,
+        "params": [
+          28,
+          31
+        ],
+        "train_fitness": 2.7164709757162115,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 2,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 3,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 4,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 5,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 6,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 7,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 8,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 9,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 10,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 11,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 12,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 13,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 14,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 15,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 16,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 17,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 18,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 19,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      },
+      {
+        "generation": 20,
+        "fitness": 0.654450771738473,
+        "params": [
+          30,
+          31
+        ],
+        "train_fitness": 2.4115145166547123,
+        "test_fitness": -0.9720583781962526
+      }
+    ]
+  },
+  "resolved_symbol": "005930.KS",
+  "saved_at": "2026-05-27T14:28:39"
+}

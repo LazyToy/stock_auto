@@ -41,7 +41,13 @@ def build_symbol_candidates(symbol: str) -> list[str]:
         return []
     if normalized.isdigit():
         return [f"{normalized}.KS", f"{normalized}.KQ"]
+    if _looks_like_kr_alphanumeric_symbol(normalized):
+        return [f"{normalized}.KS", f"{normalized}.KQ", normalized]
     return [normalized]
+
+
+def _looks_like_kr_alphanumeric_symbol(symbol: str) -> bool:
+    return len(symbol) == 6 and symbol.isalnum() and any(ch.isdigit() for ch in symbol)
 
 
 def format_symbol_label(symbol: str, company_name: Optional[str]) -> str:

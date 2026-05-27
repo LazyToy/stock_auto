@@ -20,6 +20,9 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Any
 from urllib.parse import urlencode
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger("KakaoNotifier")
 
@@ -62,15 +65,17 @@ class KakaoNotifier:
         rest_api_key: str = None,
         redirect_uri: str = "http://localhost:8080",
         access_token: str = None,
-        refresh_token: str = None
+        refresh_token: str = None,
+        client_secret: str = None
     ):
         self.rest_api_key = rest_api_key or os.getenv("KAKAO_REST_API_KEY")
         self.redirect_uri = redirect_uri
         self._access_token = access_token or os.getenv("KAKAO_ACCESS_TOKEN")
         self._refresh_token = refresh_token or os.getenv("KAKAO_REFRESH_TOKEN")
+        self.client_secret = client_secret or os.getenv("KAKAO_CLIENT_SECRET")
         
         self.enabled = bool(self.rest_api_key)
-        
+
         if not self.enabled:
             logger.warning("카카오 API 키가 설정되지 않았습니다. .env에 KAKAO_REST_API_KEY 추가 필요")
     
@@ -106,14 +111,17 @@ class KakaoNotifier:
             성공 여부
         """
         try:
+            token_request = {
+                "grant_type": "authorization_code",
+                "client_id": self.rest_api_key,
+                "redirect_uri": self.redirect_uri,
+                "code": auth_code
+            }
+            if self.client_secret:
+                token_request["client_secret"] = self.client_secret
             response = requests.post(
                 self.TOKEN_URL,
-                data={
-                    "grant_type": "authorization_code",
-                    "client_id": self.rest_api_key,
-                    "redirect_uri": self.redirect_uri,
-                    "code": auth_code
-                },
+                data=token_request,
                 timeout=10
             )
             response.raise_for_status()
@@ -121,10 +129,11 @@ class KakaoNotifier:
             
             self._access_token = data.get("access_token")
             self._refresh_token = data.get("refresh_token")
+            if not self._access_token or not self._refresh_token:
+                logger.error("Kakao token response is missing access_token or refresh_token.")
+                return False
             
             logger.info("카카오 토큰 발급 완료")
-            logger.info(f"Access Token: {self._access_token[:20]}...")
-            logger.info(f"Refresh Token: {self._refresh_token[:20]}...")
             logger.info("이 토큰을 .env 파일에 KAKAO_ACCESS_TOKEN, KAKAO_REFRESH_TOKEN으로 저장하세요.")
             
             return True
@@ -140,13 +149,16 @@ class KakaoNotifier:
             return False
         
         try:
+            refresh_request = {
+                "grant_type": "refresh_token",
+                "client_id": self.rest_api_key,
+                "refresh_token": self._refresh_token
+            }
+            if self.client_secret:
+                refresh_request["client_secret"] = self.client_secret
             response = requests.post(
                 self.TOKEN_URL,
-                data={
-                    "grant_type": "refresh_token",
-                    "client_id": self.rest_api_key,
-                    "refresh_token": self._refresh_token
-                },
+                data=refresh_request,
                 timeout=10
             )
             response.raise_for_status()

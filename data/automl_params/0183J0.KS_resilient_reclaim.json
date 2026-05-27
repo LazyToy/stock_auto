@@ -1,0 +1,172 @@
+{
+  "symbol": "0183J0.KS",
+  "strategy_type": "RESILIENT_RECLAIM",
+  "strategy_display_name": "Resilient Reclaim",
+  "best_params": [
+    173,
+    94,
+    17,
+    9690,
+    943,
+    9881
+  ],
+  "best_parameters": {
+    "High Window": 173,
+    "Momentum Window": 94,
+    "Reclaim Lookback": 17,
+    "High Proximity bps": 9690,
+    "Min Residual Momentum bps": 943,
+    "Failure Buffer bps": 9881
+  },
+  "parameter_labels": [
+    "High Window",
+    "Momentum Window",
+    "Reclaim Lookback",
+    "High Proximity bps",
+    "Min Residual Momentum bps",
+    "Failure Buffer bps"
+  ],
+  "best_fitness": 7.3288768970682385,
+  "fitness_metric": "composite",
+  "population_size": 8,
+  "generations": 2,
+  "mutation_rate": 0.25,
+  "history": [
+    4.693686422928022,
+    4.693686422928022,
+    7.3288768970682385
+  ],
+  "use_regime_filter": false,
+  "regime_config": {
+    "short_window": 20,
+    "long_window": 60,
+    "adx_trend_threshold": 20.0,
+    "min_trend_gap": 0.01,
+    "high_volatility_threshold": 0.45,
+    "min_relative_volume": 0.5
+  },
+  "risk_config": {
+    "atr_stop_multiplier": null,
+    "trailing_stop_pct": null,
+    "max_holding_days": null,
+    "cooldown_days": 0
+  },
+  "validation": {
+    "method": "train_test",
+    "train_size": 20,
+    "test_size": 9,
+    "train": {
+      "strategy_type": "RESILIENT_RECLAIM",
+      "params": [
+        173.0,
+        94.0,
+        17.0,
+        9690.0,
+        943.0,
+        9881.0
+      ],
+      "fitness": 5.171322973087517,
+      "metrics": {
+        "sharpe": 5.283857885836053,
+        "total_return": 0.1101037785743666,
+        "annual_return": 2.7289032854747677,
+        "benchmark_return": 0.2176386913229018,
+        "excess_return": -0.10753491274853522,
+        "max_drawdown": 0.0,
+        "profit_factor": 0.0,
+        "trade_count": 1.0,
+        "turnover": 0.05,
+        "signal_exit_count": 0.0,
+        "atr_stop_exit_count": 0.0,
+        "trailing_stop_exit_count": 0.0,
+        "max_holding_exit_count": 0.0,
+        "regime_blocked_buy_count": 0.0
+      }
+    },
+    "test": {
+      "strategy_type": "RESILIENT_RECLAIM",
+      "params": [
+        173.0,
+        94.0,
+        17.0,
+        9690.0,
+        943.0,
+        9881.0
+      ],
+      "fitness": -0.4138846737481032,
+      "metrics": {
+        "sharpe": 0.0,
+        "total_return": 0.0,
+        "annual_return": 0.0,
+        "benchmark_return": 0.4138846737481032,
+        "excess_return": -0.4138846737481032,
+        "max_drawdown": 0.0,
+        "profit_factor": 0.0,
+        "trade_count": 0.0,
+        "turnover": 0.0,
+        "signal_exit_count": 0.0,
+        "atr_stop_exit_count": 0.0,
+        "trailing_stop_exit_count": 0.0,
+        "max_holding_exit_count": 0.0,
+        "regime_blocked_buy_count": 0.0
+      }
+    },
+    "fitness_gap": 5.58520764683562,
+    "overfit_guard": {
+      "passes": false,
+      "failed_checks": [
+        "fitness_gap"
+      ],
+      "min_trades": 0,
+      "max_fitness_gap": 2.0,
+      "deflated_sharpe": -1.3209644714590132
+    },
+    "generation_history": [
+      {
+        "generation": 0,
+        "fitness": 4.693686422928022,
+        "params": [
+          201,
+          82,
+          58,
+          9690,
+          70,
+          9310
+        ],
+        "train_fitness": -0.1263756264968905,
+        "test_fitness": -0.4138846737481032
+      },
+      {
+        "generation": 1,
+        "fitness": 4.693686422928022,
+        "params": [
+          173,
+          94,
+          12,
+          9438,
+          267,
+          9881
+        ],
+        "train_fitness": -0.1263756264968905,
+        "test_fitness": 9.825442415470109
+      },
+      {
+        "generation": 2,
+        "fitness": 7.3288768970682385,
+        "params": [
+          173,
+          94,
+          17,
+          9690,
+          943,
+          9881
+        ],
+        "train_fitness": 5.171322973087517,
+        "test_fitness": -0.4138846737481032
+      }
+    ]
+  },
+  "requested_symbol": "0183J0",
+  "resolved_symbol": "0183J0.KS",
+  "saved_at": "2026-05-27T17:15:39"
+}

@@ -5,7 +5,7 @@ REST API를 사용하여 주식 데이터 조회 및 주문 실행을 수행합�
 
 import requests
 import time
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import List, Optional, Dict, Any
 from src.data.models import StockPrice, Order, Position, Account, OrderSide, OrderType
 from src.config import Config
@@ -447,30 +447,47 @@ class KISAPIClient:
             result = self._make_request("GET", url, headers, params=params)
             
             prices = []
-            output_key = "output2" if self.market == "KR" else "output2"
-            
-            for item in result.get(output_key, []):
-                if self.market == "KR":
-                    prices.append(StockPrice(
-                        date=datetime.strptime(item["stck_cntg_hour"], "%H%M%S"),
-                        open=float(item.get("stck_oprc", 0)),
-                        high=float(item.get("stck_hgpr", 0)),
-                        low=float(item.get("stck_lwpr", 0)),
-                        close=float(item.get("stck_prpr", 0)),
-                        volume=int(item.get("cntg_vol", 0))
-                    ))
-                else:
-                    prices.append(StockPrice(
-                        date=datetime.strptime(item.get("xymd", "") + item.get("xhms", ""), "%Y%m%d%H%M%S"),
-                        open=float(item.get("open", 0)),
-                        high=float(item.get("high", 0)),
-                        low=float(item.get("low", 0)),
-                        close=float(item.get("last", 0)),
-                        volume=int(float(item.get("evol", 0)))
-                    ))
-            
+            # KR/US 모두 output2 키 사용
+            today = date.today()
+
+            for item in result.get("output2", []):
+                try:
+                    if self.market == "KR":
+                        # KR 분봉: 체결시간(HHMMSS)과 오늘 날짜를 결합
+                        # TODO(PR-06): 장 종료 후 조회 또는 전일 데이터 이슈 시
+                        #   호출자에게 reason을 전달하는 반환 계약 확장이 필요함.
+                        #   현재는 로그만 남기고, PR-06(실제 데이터 수집기)에서 처리 예정.
+                        hour_str = item["stck_cntg_hour"]
+                        time_part = datetime.strptime(hour_str, "%H%M%S").time()
+                        dt = datetime.combine(today, time_part)
+                        prices.append(StockPrice(
+                            symbol=symbol,
+                            datetime=dt,
+                            open=float(item.get("stck_oprc", 0)),
+                            high=float(item.get("stck_hgpr", 0)),
+                            low=float(item.get("stck_lwpr", 0)),
+                            close=float(item.get("stck_prpr", 0)),
+                            volume=int(item.get("cntg_vol", 0)),
+                        ))
+                    else:
+                        # US 분봉: xymd(YYYYMMDD) + xhms(HHMMSS) 결합
+                        dt = datetime.strptime(
+                            item.get("xymd", "") + item.get("xhms", ""), "%Y%m%d%H%M%S"
+                        )
+                        prices.append(StockPrice(
+                            symbol=symbol,
+                            datetime=dt,
+                            open=float(item.get("open", 0)),
+                            high=float(item.get("high", 0)),
+                            low=float(item.get("low", 0)),
+                            close=float(item.get("last", 0)),
+                            volume=int(float(item.get("evol", 0))),
+                        ))
+                except (KeyError, ValueError) as parse_err:
+                    logger.warning("분봉 항목 파싱 오류: %s, item: %s", parse_err, item)
+
             return prices
-            
+
         except Exception as e:
             logger.error(f"분봉 데이터 조회 실패: {e}")
             return []

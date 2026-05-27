@@ -1,0 +1,96 @@
+{
+  "symbol": "005930",
+  "strategy_type": "BOLLINGER",
+  "strategy_display_name": "Bollinger Bands",
+  "best_params": [
+    13,
+    29,
+    456
+  ],
+  "best_parameters": {
+    "Period": 13,
+    "Std Dev x10": 29,
+    "Band Proximity bps": 456
+  },
+  "parameter_labels": [
+    "Period",
+    "Std Dev x10",
+    "Band Proximity bps"
+  ],
+  "best_fitness": -1.8347616322727867,
+  "fitness_metric": "composite",
+  "population_size": 50,
+  "generations": 20,
+  "mutation_rate": 0.2,
+  "history": [
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867,
+    -1.8347616322727867
+  ],
+  "validation": {
+    "method": "train_test",
+    "train_size": 170,
+    "test_size": 73,
+    "train": {
+      "strategy_type": "BOLLINGER",
+      "params": [
+        13.0,
+        29.0,
+        456.0
+      ],
+      "fitness": 1.5622890240344884,
+      "metrics": {
+        "sharpe": 3.5339009766273795,
+        "total_return": 0.22330113110630911,
+        "annual_return": 0.3482032176138159,
+        "benchmark_return": 2.1860307307580236,
+        "excess_return": -1.9627295996517145,
+        "max_drawdown": -0.0015000000000000568,
+        "profit_factor": 130.04424778863432,
+        "trade_count": 10.0,
+        "turnover": 0.058823529411764705
+      }
+    },
+    "test": {
+      "strategy_type": "BOLLINGER",
+      "params": [
+        13.0,
+        29.0,
+        456.0
+      ],
+      "fitness": -0.9940749789097674,
+      "metrics": {
+        "sharpe": 0.0,
+        "total_return": 0.0,
+        "annual_return": 0.0,
+        "benchmark_return": 0.9940749789097674,
+        "excess_return": -0.9940749789097674,
+        "max_drawdown": 0.0,
+        "profit_factor": 0.0,
+        "trade_count": 0.0,
+        "turnover": 0.0
+      }
+    },
+    "fitness_gap": 2.556364002944256
+  },
+  "resolved_symbol": "005930.KS",
+  "saved_at": "2026-05-27T10:28:55"
+}
